@@ -35,7 +35,7 @@ const NATION_THEMES = [
     { code: 'AUS', name: 'Australia', c1: '#008751', c2: '#FFCD00' }, { code: 'AUT', name: 'Austria', c1: '#ED2939', c2: '#FFFFFF' },
     { code: 'BEL', name: 'Belgium', c1: '#E30613', c2: '#FFD900' }, { code: 'BIH', name: 'Bosnia & Herz.', c1: '#002F6C', c2: '#FFCD00' },
     { code: 'BRA', name: 'Brazil', c1: '#009C3B', c2: '#FFDF00' }, { code: 'CAN', name: 'Canada', c1: '#FF0000', c2: '#FFFFFF' },
-    { code: 'CPV', name: 'Cape Verde', c1: '#003893', c2: '#CF2027' }, { code: 'COL', name: 'Colombia', c1: '#FCD116', c2: '#003893' },
+    { code: 'CPV', name: 'Cabo Verde', c1: '#003893', c2: '#CF2027' }, { code: 'COL', name: 'Colombia', c1: '#FCD116', c2: '#003893' },
     { code: 'CIV', name: 'Côte d\'Ivoire', c1: '#F77F00', c2: '#009E60' }, { code: 'CRO', name: 'Croatia', c1: '#FF0000', c2: '#FFFFFF' },
     { code: 'CUW', name: 'Curaçao', c1: '#002B7F', c2: '#F9E814' }, { code: 'CZE', name: 'Czech Republic', c1: '#D7141A', c2: '#11457E' },
     { code: 'COD', name: 'DR Congo', c1: '#007FFF', c2: '#F7D618' }, { code: 'ECU', name: 'Ecuador', c1: '#FFD100', c2: '#0033A0' },
@@ -268,6 +268,7 @@ function setupKillSwitch() {
 }
 
 function attachGlobalListeners() {
+    // 1. Your existing input listener for saving and calculating scores
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' && !e.target.classList.contains('theme-switcher')) {
             saveUI();
@@ -277,6 +278,22 @@ function attachGlobalListeners() {
             }
         }
     });
+
+    // --- 2. NEW: DESKTOP DRAG-TO-SCROLL ---
+    const slider = document.querySelector('.knockout-wrapper');
+    let isDown = false; let startX; let scrollLeft;
+    if(slider) {
+        slider.addEventListener('mousedown', (e) => { isDown = true; slider.style.cursor = 'grabbing'; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
+        slider.addEventListener('mouseleave', () => { isDown = false; slider.style.cursor = 'grab'; });
+        slider.addEventListener('mouseup', () => { isDown = false; slider.style.cursor = 'grab'; });
+        slider.addEventListener('mousemove', (e) => { 
+            if(!isDown) return; 
+            e.preventDefault(); 
+            const x = e.pageX - slider.offsetLeft; 
+            const walk = (x - startX) * 2; 
+            slider.scrollLeft = scrollLeft - walk; 
+        });
+    }
 }
 
 // ==========================================
@@ -585,7 +602,7 @@ function calculateRoundOf32(standings) {
 }
 
 function injectKnockoutTeam(matchId, teamNum, teamFullName) {
-    if(!teamFullName) return;
+    if(teamFullName === undefined || teamFullName === null) return;
     const wallBox = document.querySelector(`.match-box[data-match-id="${matchId}"]`);
     if (wallBox) {
         const inputs = wallBox.querySelectorAll('.team-input');
@@ -627,7 +644,12 @@ function calculateKnockouts() {
 
     knockoutRoutes.forEach(route => {
         const sourceMatch = getKnockoutMatchData(route.source);
-        if (sourceMatch && sourceMatch.winner) injectKnockoutTeam(route.target, route.targetTeamNum, route.isLoser ? sourceMatch.loser : sourceMatch.winner);
+        if (sourceMatch && sourceMatch.winner) {
+            injectKnockoutTeam(route.target, route.targetTeamNum, route.isLoser ? sourceMatch.loser : sourceMatch.winner);
+        } else {
+            // FIX: Erase the downstream target if the score is deleted or tied
+            injectKnockoutTeam(route.target, route.targetTeamNum, "");
+        }
     });
 
     // --- NEW: AUTOMATICALLY CROWN THE CHAMPION ---
