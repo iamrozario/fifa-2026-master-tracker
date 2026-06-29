@@ -45,4 +45,4 @@ The UI is strictly locked against manual frontend tampering. Once the final whis
 
 ## 🔗 Live Deployment
 This application is integrated with GitHub and auto-deploys via Netlify. 
-**[View the Live Application Here]** *(Note: Add your live Netlify URL here)*
+https://fifascorechart.netlify.app/
