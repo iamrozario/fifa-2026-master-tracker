@@ -81,6 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (typeof calculateGroupStages === "function") calculateGroupStages(); 
     if (typeof calculateKnockouts === "function") calculateKnockouts(); 
+    
+    // --- PHASE 4 FIX: FLUSH DATA TO UI ON LOAD ---
+    syncWallChart(); 
 });
 
 // --- CORE INFRASTRUCTURE ---
@@ -321,6 +324,9 @@ function attachGlobalListeners() {
             if (e.target.classList.contains('score-input') || e.target.classList.contains('score-input-small') || e.target.classList.contains('pen-input')) {
                 calculateGroupStages();
                 calculateKnockouts();
+                
+                // --- PHASE 4 FIX: PUSH LIVE SCORES TO WALL CHART ---
+                syncWallChart(); 
             }
         }
     });
