@@ -10,10 +10,12 @@ A dynamic, offline-first FIFA World Cup 2026 tournament tracker featuring a cust
 This project was built without heavy front-end frameworks (no React, no Vue) to demonstrate a fundamental, ground-up understanding of DOM manipulation, data state management, and complex algorithmic routing in plain JavaScript.
 
 ## 🚀 Why I Built This (The Business Case)
-As a professional transitioning into the **B2B SaaS Account Executive** space, I built this application to demonstrate deep technical product literacy. Selling complex software requires understanding how complex software is built. This tracker specifically showcases my ability to:
-1. Translate static, real-world business rules (FIFA regulations) into dynamic, executable code.
-2. Manage edge-case data collisions.
-3. Architect an intuitive, state-preserved User Experience (UX).
+As a professional transitioning from **Operations, Supply Chain, and Financial Analysis** into **Data Analytics**, I built this application to prove my technical capabilities in data architecture, algorithm design, and state management. 
+
+In supply chain and finance, clean data and strict business rules are the foundation of operations. I built this tracker to demonstrate how I apply that operational mindset to software and data engineering. It specifically showcases my ability to:
+1. **Translate Business Logic to Code:** Convert static, complex real-world rules (FIFA regulations) into dynamic, executable algorithms.
+2. **Resolve Edge-Case Collisions:** Architect data lookup structures that eliminate mathematical routing errors without manual intervention.
+3. **Manage Data State:** Build a robust, offline-first local memory pipeline that protects user inputs.
 
 ## 🧠 Core Architecture & Logic Engines
 
@@ -36,11 +38,11 @@ The UI is strictly locked against manual frontend tampering. Once the final whis
 
 ## 👨‍💻 The Team
 
-* **Pedrus Niloy Rozario** — *Lead Product Architect & Frontend Developer*
-  * Architected the UI, built the core mathematical logic, and managed the deployment pipeline.
+* **Pedrus Niloy Rozario** — *Lead Data Architect & Developer*
+  * Designed the data pipeline, built the core mathematical logic, and managed the deployment architecture.
 * **Kevin (Google Gemini)** — *AI Engineering Partner*
   * Consulted on JavaScript edge-case patching, dictionary lookup optimization, and DOM state immunization. 
 
 ## 🔗 Live Deployment
 This application is integrated with GitHub and auto-deploys via Netlify. 
-[[View the Live Application Here](https://fifascorechart.netlify.app/)]
+**[View the Live Application Here]** *(Note: Add your live Netlify URL here)*
