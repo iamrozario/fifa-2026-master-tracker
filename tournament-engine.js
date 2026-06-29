@@ -23,6 +23,66 @@ const TOURNAMENT_GROUPS = {
     'K': ['POR', 'COD', 'UZB', 'COL'], 'L': ['ENG', 'CRO', 'GHA', 'PAN']
 };
 
+// --- 495-SCENARIO MATRIX DICTIONARY ---
+const FIFA_3RD_PLACE_MATRIX = {};
+
+function buildFifaMatrix() {
+    const groups = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+    const slots = [
+        { matchId: 77, teamNum: 2, accepts: ['C','D','F','G','H'], teamAbbr: null },
+        { matchId: 74, teamNum: 2, accepts: ['A','B','C','D','F'], teamAbbr: null },
+        { matchId: 79, teamNum: 2, accepts: ['C','E','F','H','I'], teamAbbr: null },
+        { matchId: 85, teamNum: 2, accepts: ['E','F','G','I','J'], teamAbbr: null },
+        { matchId: 82, teamNum: 2, accepts: ['A','E','H','I','J'], teamAbbr: null },
+        { matchId: 81, teamNum: 2, accepts: ['B','E','F','I','J'], teamAbbr: null },
+        { matchId: 80, teamNum: 2, accepts: ['E','H','I','J','K'], teamAbbr: null },
+        { matchId: 87, teamNum: 2, accepts: ['D','E','I','J','L'], teamAbbr: null }
+    ];
+
+    // Harvester to generate all combinations
+    function getCombinations(arr, size) {
+        let result = [];
+        function combine(prefix, start) {
+            if (prefix.length === size) { result.push(prefix); return; }
+            for (let i = start; i < arr.length; i++) {
+                combine([...prefix, arr[i]], i + 1);
+            }
+        }
+        combine([], 0);
+        return result;
+    }
+
+    const all495Combos = getCombinations(groups, 8);
+
+    // Compute and cache valid routing scenarios
+    all495Combos.forEach(combo => {
+        let currentSlots = JSON.parse(JSON.stringify(slots)); 
+        let comboKey = combo.sort().join(''); // Alphabetize key: e.g., "ABCDEFGH"
+        
+        function solve(index) {
+            if (index === combo.length) return true;
+            let currentGroup = combo[index];
+            for (let i = 0; i < currentSlots.length; i++) {
+                if (!currentSlots[i].teamAbbr && currentSlots[i].accepts.includes(currentGroup)) {
+                    currentSlots[i].teamAbbr = currentGroup;
+                    if (solve(index + 1)) return true;
+                    currentSlots[i].teamAbbr = null;
+                }
+            }
+            return false;
+        }
+
+        if (solve(0)) {
+            FIFA_3RD_PLACE_MATRIX[comboKey] = currentSlots.map(s => ({ 
+                matchId: s.matchId, 
+                teamNum: s.teamNum, 
+                group: s.teamAbbr 
+            }));
+        }
+    });
+    console.log(`Gatekeeper Active: ${Object.keys(FIFA_3RD_PLACE_MATRIX).length} Scenarios Loaded.`);
+}
+
 const CORE_THEMES = [
     { id: 'classic', name: 'Classic Pitch' }, { id: 'neon', name: 'Cyberpunk Neon' },
     { id: 'dark', name: 'Dark Mode' }, { id: 'light', name: 'Light Mode' },
@@ -239,7 +299,8 @@ function loadData() {
             tournamentData = JSON.parse(saved); 
             if (!tournamentData.matchStats) tournamentData.matchStats = {};
             applyTheme(); 
-            restoreUI(); 
+            restoreUI();
+            paintModalIndicators(); 
         } 
         catch (e) { localStorage.removeItem(STORAGE_KEY); }
     }
@@ -313,6 +374,13 @@ function setupKillSwitch() {
 function attachGlobalListeners() {
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' && !e.target.classList.contains('theme-switcher')) {
+            
+            // --- NEW: Brutal Data Sanitization ---
+            if (e.target.type === 'number') {
+                // Strip negative signs, decimals, 'e', and force positive integers
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            }
+
             // Check if we need to reveal penalty boxes instantly as the user types
             if (e.target.classList.contains('score-input')) {
                 evaluatePenaltyVisibility();
@@ -325,8 +393,14 @@ function attachGlobalListeners() {
                 calculateGroupStages();
                 calculateKnockouts();
                 
-                // --- PHASE 4 FIX: PUSH LIVE SCORES TO WALL CHART ---
-                syncWallChart(); 
+                // --- OPTIMIZED SYNC: Pass only the active Match ID ---
+                const tr = e.target.closest('tr');
+                if (tr && tr.firstElementChild) {
+                    const activeMatchId = tr.firstElementChild.textContent.trim();
+                    syncWallChart(activeMatchId); 
+                } else {
+                    syncWallChart(); // Fallback
+                }
             }
         }
     });
@@ -445,12 +519,45 @@ function saveModalData() {
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tournamentData));
     
+    // --- NEW: Trigger UI Indicator ---
+    paintModalIndicators();
+    
     const btn = document.getElementById('saveModalBtn');
     btn.textContent = "SAVED TO MEMORY ✓";
     setTimeout(() => {
         btn.textContent = "Save Database";
         document.getElementById('matchModal').style.display = 'none';
     }, 1000);
+}
+
+// Add this new function to paint the indicators
+function paintModalIndicators() {
+    if (!tournamentData.matchStats) return;
+    
+    Object.keys(tournamentData.matchStats).forEach(matchId => {
+        const stats = tournamentData.matchStats[matchId];
+        // Only paint if there is actual text saved
+        if (stats.goals || stats.incidents || stats.motm) {
+            
+            // 1. Tag the Wall Chart Box
+            const wallBox = document.querySelector(`.match-box[data-match-id="${matchId}"] .match-meta`);
+            if (wallBox && !wallBox.innerHTML.includes('📝')) {
+                wallBox.innerHTML += ' <span title="Notes Saved" style="color: var(--brand-cyan);">📝</span>';
+            }
+
+            // 2. Tag the Master Tracker Row
+            const rows = document.querySelectorAll('.match-tracker-wrapper tbody tr');
+            rows.forEach(row => {
+                const firstCell = row.querySelector('td');
+                if (firstCell && firstCell.textContent.trim() === String(matchId)) {
+                    const badge = row.querySelector('.group-badge');
+                    if (badge && !badge.innerHTML.includes('📝')) {
+                        badge.innerHTML += ' 📝';
+                    }
+                }
+            });
+        }
+    });
 }
 
 // --- THEME ENGINE ---
@@ -618,32 +725,21 @@ function calculateRoundOf32(standings) {
     });
 
     const top8 = thirdPlaces.slice(0, 8);
-    // --- BAND-AID PATCH: REORDERED TO FORCE SPECIFIC 3RD PLACE DRAFTING ---
-    const slots = [
-        // 1. Force France (M77) to draft before Germany (M74)
-        { matchId: 77, teamNum: 2, accepts: ['C','D','F','G','H'], teamAbbr: null },
-        { matchId: 74, teamNum: 2, accepts: ['A','B','C','D','F'], teamAbbr: null },
-        { matchId: 79, teamNum: 2, accepts: ['C','E','F','H','I'], teamAbbr: null },
-        { matchId: 85, teamNum: 2, accepts: ['E','F','G','I','J'], teamAbbr: null },
-        { matchId: 82, teamNum: 2, accepts: ['A','E','H','I','J'], teamAbbr: null },
-        { matchId: 81, teamNum: 2, accepts: ['B','E','F','I','J'], teamAbbr: null },
-        { matchId: 80, teamNum: 2, accepts: ['E','H','I','J','K'], teamAbbr: null },
-        { matchId: 87, teamNum: 2, accepts: ['D','E','I','J','L'], teamAbbr: null }
-    ];
 
-    function backtrack(index) {
-        if (index === top8.length) return true; 
-        const currentTeam = top8[index];
-        for (let i = 0; i < slots.length; i++) {
-            if (slots[i].teamAbbr === null && slots[i].accepts.includes(currentTeam.group)) {
-                slots[i].teamAbbr = currentTeam.abbr; if (backtrack(index + 1)) return true; slots[i].teamAbbr = null; 
-            }
-        }
-        return false;
-    }
-
+    // --- DICTIONARY ROUTING LOOKUP ---
     if (top8.length === 8 && top8.every(t => t.p > 0)) {
-        backtrack(0); slots.forEach(slot => { injectKnockoutTeam(slot.matchId, slot.teamNum, getFullName(slot.teamAbbr)); });
+        // Generate the key (e.g., "ABCDEFGH")
+        const comboKey = top8.map(t => t.group).sort().join('');
+        const routingPlan = FIFA_3RD_PLACE_MATRIX[comboKey];
+
+        if (routingPlan) {
+            routingPlan.forEach(slot => {
+                const teamData = top8.find(t => t.group === slot.group);
+                injectKnockoutTeam(slot.matchId, slot.teamNum, getFullName(teamData.abbr));
+            });
+        } else {
+            console.error("CRITICAL ERROR: Unsolvable 3rd-place combination detected:", comboKey);
+        }
     }
 }
 
@@ -779,3 +875,4 @@ function fixTrackerPlaceholders() {
         }
     });
 }
+
