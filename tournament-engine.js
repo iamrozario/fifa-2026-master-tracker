@@ -58,20 +58,23 @@ const NATION_THEMES = [
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (typeof buildFifaMatrix === "function") buildFifaMatrix();
     forceBlackInputs(); 
     injectMissingInputs(); 
+    injectPenaltyBoxes(); // INJECT HIDDEN BOXES FIRST
     cacheNationData(); 
     setupThemeSwitcher();
     injectModalSystem();
     fixTrackerPlaceholders();
-    formatLocalTime();
+    formatLocalTime(); 
 
     document.querySelectorAll('.knockout-wrapper .team-input, .knockout-wrapper .score-input-small').forEach(input => {
         input.setAttribute('readonly', 'true');
-        input.style.pointerEvents = 'none'; // Kills the mouse cursor interaction
+        input.style.pointerEvents = 'none'; 
     });
-    
-    loadData();
+
+    loadData(); 
+    evaluatePenaltyVisibility(); // CHECK FOR TIES SAVED IN MEMORY
     attachGlobalListeners();
     attachModalTriggers(); 
     setupKillSwitch(); 
@@ -114,6 +117,43 @@ function formatLocalTime() {
     });
     
     syncWallChart(); 
+}
+
+// --- NEW: DYNAMIC PENALTY SHOOTOUT UI ---
+function injectPenaltyBoxes() {
+    document.querySelectorAll('.match-tracker-wrapper tbody tr').forEach(row => {
+        const matchIdCell = row.querySelector('td');
+        if (matchIdCell && parseInt(matchIdCell.textContent) >= 73) {
+            const scoreTd = row.querySelectorAll('td')[6]; // Targets the Score column
+            if (scoreTd && !scoreTd.querySelector('.pen-container')) {
+                // Injects hidden penalty boxes into every knockout match
+                scoreTd.insertAdjacentHTML('beforeend', `
+                    <div class="pen-container" style="display:none; justify-content:center; gap:6px; margin-top:4px;">
+                        <input type="number" min="0" step="1" inputmode="numeric" class="pen-input" style="width:28px; height:28px; font-size:0.8em; font-weight:900; text-align:center; background:var(--surface); border:1px solid var(--fifa-gold); color:var(--fifa-gold); border-radius:3px;" placeholder="P" title="Penalty Score">
+                        <input type="number" min="0" step="1" inputmode="numeric" class="pen-input" style="width:28px; height:28px; font-size:0.8em; font-weight:900; text-align:center; background:var(--surface); border:1px solid var(--fifa-gold); color:var(--fifa-gold); border-radius:3px;" placeholder="P" title="Penalty Score">
+                    </div>
+                `);
+            }
+        }
+    });
+}
+
+function evaluatePenaltyVisibility() {
+    document.querySelectorAll('.match-tracker-wrapper tbody tr').forEach(row => {
+        const matchIdCell = row.querySelector('td');
+        if (matchIdCell && parseInt(matchIdCell.textContent) >= 73) {
+            const scores = row.querySelectorAll('.score-input');
+            const penContainer = row.querySelector('.pen-container');
+            if (scores.length === 2 && penContainer) {
+                // If scores are identical and not blank, reveal the penalty boxes
+                if (scores[0].value !== "" && scores[1].value !== "" && scores[0].value === scores[1].value) {
+                    penContainer.style.display = 'flex';
+                } else {
+                    penContainer.style.display = 'none';
+                }
+            }
+        }
+    });
 }
 
 function forceBlackInputs() {
@@ -268,31 +308,31 @@ function setupKillSwitch() {
 }
 
 function attachGlobalListeners() {
-    // 1. Your existing input listener for saving and calculating scores
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' && !e.target.classList.contains('theme-switcher')) {
-            saveUI();
-            if (e.target.classList.contains('score-input') || e.target.classList.contains('score-input-small')) {
+            // Check if we need to reveal penalty boxes instantly as the user types
+            if (e.target.classList.contains('score-input')) {
+                evaluatePenaltyVisibility();
+            }
+            
+            saveUI(); 
+            
+            // Recalculate if any score or penalty box changes
+            if (e.target.classList.contains('score-input') || e.target.classList.contains('score-input-small') || e.target.classList.contains('pen-input')) {
                 calculateGroupStages();
                 calculateKnockouts();
             }
         }
     });
 
-    // --- 2. NEW: DESKTOP DRAG-TO-SCROLL ---
+    // --- DESKTOP DRAG-TO-SCROLL ---
     const slider = document.querySelector('.knockout-wrapper');
     let isDown = false; let startX; let scrollLeft;
     if(slider) {
         slider.addEventListener('mousedown', (e) => { isDown = true; slider.style.cursor = 'grabbing'; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
         slider.addEventListener('mouseleave', () => { isDown = false; slider.style.cursor = 'grab'; });
         slider.addEventListener('mouseup', () => { isDown = false; slider.style.cursor = 'grab'; });
-        slider.addEventListener('mousemove', (e) => { 
-            if(!isDown) return; 
-            e.preventDefault(); 
-            const x = e.pageX - slider.offsetLeft; 
-            const walk = (x - startX) * 2; 
-            slider.scrollLeft = scrollLeft - walk; 
-        });
+        slider.addEventListener('mousemove', (e) => { if(!isDown) return; e.preventDefault(); const x = e.pageX - slider.offsetLeft; const walk = (x - startX) * 2; slider.scrollLeft = scrollLeft - walk; });
     }
 }
 
@@ -682,12 +722,28 @@ function getKnockoutMatchData(matchId) {
     document.querySelectorAll('.match-tracker-wrapper tbody tr').forEach(row => {
         const firstCell = row.querySelector('td');
         if (firstCell && firstCell.textContent.trim() === String(matchId)) {
-            const inputs = row.querySelectorAll('.team-input'); const scores = row.querySelectorAll('.score-input');
+            const inputs = row.querySelectorAll('.team-input'); 
+            const scores = row.querySelectorAll('.score-input');
+            
             if (inputs.length === 2 && scores.length === 2) {
                 if (inputs[0].value && inputs[1].value && scores[0].value !== "" && scores[1].value !== "") {
-                    const g1 = parseInt(scores[0].value, 10); const g2 = parseInt(scores[1].value, 10);
-                    if (g1 > g2) data = { winner: inputs[0].value, loser: inputs[1].value };
-                    else if (g2 > g1) data = { winner: inputs[1].value, loser: inputs[0].value };
+                    const g1 = parseInt(scores[0].value, 10); 
+                    const g2 = parseInt(scores[1].value, 10);
+                    
+                    // Harvest penalty data if it exists
+                    let p1 = 0; let p2 = 0;
+                    const pens = row.querySelectorAll('.pen-input');
+                    if (pens.length === 2 && pens[0].value !== "" && pens[1].value !== "") {
+                        p1 = parseInt(pens[0].value, 10);
+                        p2 = parseInt(pens[1].value, 10);
+                    }
+
+                    // Evaluate winner based on Goals FIRST, then Penalties if tied
+                    if (g1 > g2 || (g1 === g2 && p1 > p2)) {
+                        data = { winner: inputs[0].value, loser: inputs[1].value };
+                    } else if (g2 > g1 || (g1 === g2 && p2 > p1)) {
+                        data = { winner: inputs[1].value, loser: inputs[0].value };
+                    }
                 }
             }
         }
