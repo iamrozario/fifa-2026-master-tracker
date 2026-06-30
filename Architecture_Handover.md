@@ -2,89 +2,82 @@
 
 ```markdown
 # 🏆 FIFA World Cup 2026 Master Tracker 
-## Developer Handover & Architecture Notebook
+## System Architecture & Technical Specifications
 **Version:** 1.0 (Production Candidate)
-**Author / Lead Architect:** Pedrus Niloy Rozario
+**Lead Architect:** Pedrus Niloy Rozario
 **Date:** June 2026
 
 ---
 
-### 1. Project Overview
-The FIFA World Cup 2026 Master Tracker is a vanilla JavaScript, offline-first web application designed to mathematically simulate, track, and route the 104-match tournament. 
+### 1. Architectural Overview
+The FIFA World Cup 2026 Master Tracker is a vanilla JavaScript, offline-first application engineered to mathematically simulate, track, and route a complex 104-match tournament. 
 
-It was built without frontend frameworks to ensure zero dependency bloat, utilizing a custom `localStorage` state management pipeline and complex dictionary-lookup algorithms to handle FIFA's dynamic routing rules.
+Deliberately built without abstraction layers or frontend frameworks, the system relies on native DOM manipulation, deterministic algorithmic routing, and a zero-dependency `localStorage` state management pipeline. This architecture ensures absolute computational transparency and eliminates framework-specific overhead.
 
-**Core Files:**
-* `index.html`: The presentation layer, containing the Master Tracker table and the Knockout Wall Chart.
-* `tournament-engine.js`: The neural logic engine, handling math, memory, routing, and UI synchronization.
+**Core Technical Stack:**
+* `index.html`: The presentation and structural layer, encompassing the Master Tracker matrix and the Knockout topology.
+* `tournament-engine.js`: The central logic controller responsible for state persistence, algorithmic routing, constraint satisfaction, and dynamic UI synchronization.
 
 ---
 
-### 2. Core Architecture & Logic Engines
+### 2. Algorithmic Modules & Logic Engines
 
-#### A. The Group Stage Engine & Tie-Breakers
-* **Trigger:** Listens to `.score-input` fields in Matches 1-72.
-* **Logic:** Calculates Points (3 for Win, 1 for Draw), Goals For (GF), Goals Against (GA), and Goal Difference (GD).
-* **Sorting Algorithm:** Applies official FIFA tie-breaker hierarchy: `Points > GD > GF`. 
-* **State Management:** Dynamically renders the 12 group tables on the fly without deleting or recreating DOM elements, preventing memory leaks.
+#### A. The Group Stage Matrix & Tie-Breaker Heuristics
+* **Event Listener Topology:** Monitors `.score-input` elements across matches 1-72 via highly efficient event delegation to minimize memory consumption.
+* **Mathematical State:** Computes Points (3 for Win, 1 for Draw), Goals For (GF), Goals Against (GA), and Goal Difference (GD) in real-time.
+* **Sorting Heuristics:** Implements a strict, multi-tiered sorting algorithm evaluating official FIFA tie-breaker hierarchies: `Points > GD > GF`. 
+* **DOM Optimization:** Dynamically updates node text contents for the 12 group tables on the fly without destructive DOM recreation, strictly preventing memory leaks and layout thrashing.
 
-#### B. The 3rd-Place Gatekeeper & 495-Scenario Matrix
-* **The Problem:** 8 out of 12 third-place teams advance. A standard Depth-First Search (DFS) algorithm fails here due to slot collisions (multiple teams mathematically fitting into the same bracket).
-* **The Solution:** A **Dictionary Lookup Architecture**. The script mathematically generates the 495 possible 8-team alphabetical combinations in memory on load (via `buildFifaMatrix()`). 
-* **Execution:** Once all 144 group stage appearances are locked, the engine sorts the 8 advancing groups alphabetically, hits the matrix, and routes them with 0% chance of collision.
+#### B. Constraint Satisfaction: Dynamic DFS Backtracking
+* **The Computational Problem:** 8 out of 12 third-place teams advance. A static algorithmic assignment methodology fails because purely alphabetical combinations destroy the relative performance hierarchy necessary to draft teams into legally compliant FIFA slots.
+* **The Solution:** A **Performance-Ranked DFS Backtracking Architecture**. 
+* **Execution Protocol:** Upon validation of all 144 group stage variables, the engine sorts the qualifying 3rd-place teams dynamically by performance (`Points > GD > GF`). A recursive Depth-First Search (DFS) algorithm evaluates the available Round of 32 constraints and dynamically drafts the highest-performing teams. If a constraint violation (collision) is detected, the algorithm backtracks, ensuring a mathematically flawless routing matrix with 0% error tolerance.
 
 #### C. The Knockout Routing Topology
-* **HTML Mapping:** The knockout matches (73-104) are **not** sequential in the HTML. They are mapped chronologically based on official FIFA kick-off times (e.g., M76 occurs before M74). 
-* **Data Flow:** The JS object `knockoutRoutes` reads the winners of the Master Tracker IDs and pushes them to downstream placeholder targets (e.g., `Winner Match 73`).
-* **Phantom Data Prevention:** If a user deletes a score upstream (correcting a typo), the engine passes an empty string `""` downstream to instantly erase invalid advanced teams.
+* **Chronological Mapping:** The knockout array (matches 73-104) is structurally non-sequential. It is mapped via chronological node traversal based on official FIFA kick-off timestamps.
+* **Data Flow Architecture:** The `knockoutRoutes` object functions as a deterministic data pipeline, extracting victorious teams from upstream nodes and injecting them into designated downstream placeholder targets.
+* **Phantom Data Sanitization:** To maintain state integrity, if upstream metrics are modified or deleted, the engine propagates null vectors (`""`) downstream, instantly purging invalid advanced teams from the topology.
 
-#### D. The Dynamic Penalty Shootout UI
-* **Execution:** `injectPenaltyBoxes()` builds hidden input boxes inside the DOM on load.
-* **Visibility Toggle:** `evaluatePenaltyVisibility()` actively monitors keystrokes. If a knockout match score evaluates to a draw (e.g., 1-1), it changes `display: none` to `display: flex` for the penalty containers. 
-* **Logic Override:** `getKnockoutMatchData()` evaluates `Goals` first. If tied, it parses the dynamically revealed `Penalties` fields to declare a winner.
-
-#### E. The Synchronization Engine
-* **Dual UI Integrity:** The application maintains two visual interfaces: The Master Tracker (Data Entry) and the Wall Chart (Data Visualization).
-* **Execution:** `syncWallChart()` fires on every keystroke, looping through the Master Tracker to clone physical team names and active scores into the read-only Wall Chart dashboard.
+#### D. Dynamic State Injection: The Penalty Deadlock Resolver
+* **Pre-computation:** `injectPenaltyBoxes()` pre-builds hidden DOM nodes upon initialization to optimize runtime performance.
+* **State Interception:** `evaluatePenaltyVisibility()` actively intercepts keystrokes. Upon detecting a mathematical deadlock in a knockout node (e.g., a 1-1 tie), it overrides display properties to spawn penalty parameters.
+* **Dashboard Synchronization:** The `syncWallChart()` controller captures these penalty vectors and seamlessly paints them into the visual bracket UI (e.g., `(4)` and `(3)`), maintaining MVC integrity.
+* **Logic Override:** `getKnockoutMatchData()` is programmed to evaluate `Goals` first. If a deadlock is confirmed, it parses the dynamically revealed `Penalties` vector to declare the definitive victor.
 
 ---
 
-### 3. State Management (Offline-First)
+### 3. Data Persistence & State Management
 
-The application does not use a backend database. It relies on a custom `localStorage` pipeline structured around specific data attributes.
+Operating entirely client-side without an external database, the system relies on a strictly typed `localStorage` pipeline constructed around immutable HTML data attributes.
 
-* `getStableInputKey()`: Secures DOM targeting by mapping inputs to their parent `data-match-id` rather than fragile array indexes.
-* `saveUI()`: Fires on every input. Constructs a JSON object capturing every physical input state.
-* `loadData()`: Fires on DOM load. Injects the saved strings back into the physical inputs and triggers the calculation sequence, rendering the tournament exactly as the user left it.
-* **Kill Switch:** The "Nuke Reset" function wipes the storage key but requires a double-confirmation prompt to prevent catastrophic accidental data loss.
+* `getStableInputKey()`: Secures DOM targeting by mapping inputs structurally to their parent `data-match-id`, completely eliminating vulnerabilities associated with fragile array indexing.
+* `saveUI()`: Triggers asynchronously on every input modification. Serializes the physical input state into a localized JSON payload.
+* `loadData()`: Fires sequentially on `DOMContentLoaded`. Deserializes the JSON payload and re-injects strings into physical inputs, seamlessly recreating the tournament state vector identically to the user's last interaction.
+* **Fail-Safe Mechanism:** The "Nuke Reset" protocol completely purges the storage key, guarded by a double-confirmation boolean logic prompt to prevent catastrophic data loss.
 
 ---
 
-### 4. Quality Assurance & Stress Testing Protocol
+### 4. Quality Assurance & System Stress Testing
 
-If you are a developer or an LLM tasked with debugging or modifying this codebase, execute the following stress tests to ensure structural integrity:
+For academic or enterprise review, execute the following stress tests to validate the engine's structural resilience:
 
-#### Test 1: The Phantom Data Test
-1. Input a score to advance a team to the Round of 32.
-2. Delete that score (leave the boxes blank).
-3. **Expected Result:** The team must immediately disappear from the downstream placeholders in both the Master Tracker and the Wall Chart. 
+#### Test 1: The Phantom Data Integrity Test
+1. Input an arbitrary score to advance a team to the Round of 32.
+2. Delete the upstream score vector (clear the inputs).
+3. **Expected Result:** The system must instantly recognize the invalid state and purge the team from all downstream placeholders in both the Master Tracker and Wall Chart without locking up.
 
-#### Test 2: The 495-Matrix Gatekeeper Test
-1. Fill out all 72 Group Stage matches.
-2. Ensure at least one group (e.g., Group D) has a 3rd-place team with high points. 
-3. **Expected Result:** The engine must automatically inject 8 teams into the Round of 32. It should mathematically be impossible for a team to be routed to a conflicting match ID.
+#### Test 2: The DFS Constraint Resolution Test
+1. Populate all 72 Group Stage matches.
+2. Ensure at least one group (e.g., Group D) generates a 3rd-place team with a dominant performance metric. 
+3. **Expected Result:** The engine must automatically resolve the 3rd-place combinations and inject exactly 8 teams into the Round of 32. It must mathematically prioritize drafting the highest-ranked 3rd-place teams into available slots without generating routing collisions or infinite recursion loops.
 
-#### Test 3: The Penalty Deadlock Test
-1. In Match 73 (Round of 32), type a score of `1 - 1`.
-2. **Expected Result:** Gold penalty boxes must instantly appear below the main scores.
-3. Type `4` and `5` in the penalty boxes.
-4. **Expected Result:** The team with 5 penalties must advance to Match 90 (Quarter Final). The bracket must not freeze.
-
-#### Test 4: The Timezone Parser Test
-1. Change your local computer operating system timezone to Tokyo (JST) or Sydney (AEST).
-2. Reload the page.
-3. **Expected Result:** The local times next to the matches must shift mathematically based on the UTC string in the HTML `data-time` attribute, ignoring native browser localization overrides.
+#### Test 3: The Penalty Deadlock Resolution Test
+1. In Match 73 (Round of 32), inject a deadlock state (e.g., `1 - 1`).
+2. **Expected Result:** The system must intercept the tie and immediately spawn penalty parameters.
+3. Inject the vectors `4` and `5` into the penalty parameters.
+4. **Expected Result:** The system must evaluate the penalty vectors, advance the victor to Match 90, and explicitly synchronize the `(4)` and `(5)` state data to the visual Wall Chart UI.
 
 ***
 
-**End of Document**
+**End of Technical Specification Document**
+```

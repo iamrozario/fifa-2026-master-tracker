@@ -23,65 +23,8 @@ const TOURNAMENT_GROUPS = {
     'K': ['POR', 'COD', 'UZB', 'COL'], 'L': ['ENG', 'CRO', 'GHA', 'PAN']
 };
 
-// --- 495-SCENARIO MATRIX DICTIONARY ---
-const FIFA_3RD_PLACE_MATRIX = {};
-
-function buildFifaMatrix() {
-    const groups = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-    const slots = [
-        { matchId: 77, teamNum: 2, accepts: ['C','D','F','G','H'], teamAbbr: null },
-        { matchId: 74, teamNum: 2, accepts: ['A','B','C','D','F'], teamAbbr: null },
-        { matchId: 79, teamNum: 2, accepts: ['C','E','F','H','I'], teamAbbr: null },
-        { matchId: 85, teamNum: 2, accepts: ['E','F','G','I','J'], teamAbbr: null },
-        { matchId: 82, teamNum: 2, accepts: ['A','E','H','I','J'], teamAbbr: null },
-        { matchId: 81, teamNum: 2, accepts: ['B','E','F','I','J'], teamAbbr: null },
-        { matchId: 80, teamNum: 2, accepts: ['E','H','I','J','K'], teamAbbr: null },
-        { matchId: 87, teamNum: 2, accepts: ['D','E','I','J','L'], teamAbbr: null }
-    ];
-
-    // Harvester to generate all combinations
-    function getCombinations(arr, size) {
-        let result = [];
-        function combine(prefix, start) {
-            if (prefix.length === size) { result.push(prefix); return; }
-            for (let i = start; i < arr.length; i++) {
-                combine([...prefix, arr[i]], i + 1);
-            }
-        }
-        combine([], 0);
-        return result;
-    }
-
-    const all495Combos = getCombinations(groups, 8);
-
-    // Compute and cache valid routing scenarios
-    all495Combos.forEach(combo => {
-        let currentSlots = JSON.parse(JSON.stringify(slots)); 
-        let comboKey = combo.sort().join(''); // Alphabetize key: e.g., "ABCDEFGH"
-        
-        function solve(index) {
-            if (index === combo.length) return true;
-            let currentGroup = combo[index];
-            for (let i = 0; i < currentSlots.length; i++) {
-                if (!currentSlots[i].teamAbbr && currentSlots[i].accepts.includes(currentGroup)) {
-                    currentSlots[i].teamAbbr = currentGroup;
-                    if (solve(index + 1)) return true;
-                    currentSlots[i].teamAbbr = null;
-                }
-            }
-            return false;
-        }
-
-        if (solve(0)) {
-            FIFA_3RD_PLACE_MATRIX[comboKey] = currentSlots.map(s => ({ 
-                matchId: s.matchId, 
-                teamNum: s.teamNum, 
-                group: s.teamAbbr 
-            }));
-        }
-    });
-    console.log(`Gatekeeper Active: ${Object.keys(FIFA_3RD_PLACE_MATRIX).length} Scenarios Loaded.`);
-}
+// --- 495-SCENARIO MATRIX DICTIONARY (REMOVED) ---
+// We now use dynamic backtracking based on performance ranking as per Netlify specifications.
 
 const CORE_THEMES = [
     { id: 'classic', name: 'Classic Pitch' }, { id: 'neon', name: 'Cyberpunk Neon' },
@@ -118,7 +61,7 @@ const NATION_THEMES = [
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (typeof buildFifaMatrix === "function") buildFifaMatrix();
+    // Matrix generation removed as per Netlify specifications
     forceBlackInputs(); 
     injectMissingInputs(); 
     injectPenaltyBoxes(); // INJECT HIDDEN BOXES FIRST
@@ -261,9 +204,37 @@ function syncWallChart() {
             // --- NEW: SYNCHRONIZE SCORES TO WALL CHART ---
             const trackerScores = row.querySelectorAll('.score-input');
             const wallScores = wallBox.querySelectorAll('.score-input-small');
+            const trackerPens = row.querySelectorAll('.pen-input');
+
             if (trackerScores.length === 2 && wallScores.length === 2) {
                 wallScores[0].value = trackerScores[0].value;
                 wallScores[1].value = trackerScores[1].value;
+
+                // Handle penalties in the wall chart
+                wallBox.querySelectorAll('.wall-penalty-score').forEach(el => el.remove());
+                
+                if (trackerPens.length === 2 && trackerPens[0].value !== "" && trackerPens[1].value !== "") {
+                    // Only show if scores are tied (which is the only time penalties are valid)
+                    if (trackerScores[0].value === trackerScores[1].value && trackerScores[0].value !== "") {
+                        const pen1 = document.createElement('span');
+                        pen1.className = 'wall-penalty-score';
+                        pen1.style.color = 'var(--fifa-gold)';
+                        pen1.style.fontSize = '0.75em';
+                        pen1.style.marginLeft = '4px';
+                        pen1.style.fontWeight = 'bold';
+                        pen1.textContent = `(${trackerPens[0].value})`;
+                        wallScores[0].parentElement.appendChild(pen1);
+
+                        const pen2 = document.createElement('span');
+                        pen2.className = 'wall-penalty-score';
+                        pen2.style.color = 'var(--fifa-gold)';
+                        pen2.style.fontSize = '0.75em';
+                        pen2.style.marginLeft = '4px';
+                        pen2.style.fontWeight = 'bold';
+                        pen2.textContent = `(${trackerPens[1].value})`;
+                        wallScores[1].parentElement.appendChild(pen2);
+                    }
+                }
             }
 
             if (parseInt(matchId) >= 73 && parseInt(matchId) <= 104) {
@@ -726,19 +697,39 @@ function calculateRoundOf32(standings) {
 
     const top8 = thirdPlaces.slice(0, 8);
 
-    // --- DICTIONARY ROUTING LOOKUP ---
-    if (top8.length === 8 && top8.every(t => t.p > 0)) {
-        // Generate the key (e.g., "ABCDEFGH")
-        const comboKey = top8.map(t => t.group).sort().join('');
-        const routingPlan = FIFA_3RD_PLACE_MATRIX[comboKey];
+    // --- BAND-AID PATCH: REORDERED TO FORCE SPECIFIC 3RD PLACE DRAFTING ---
+    const slots = [
+        // 1. Force France (M77) to draft before Germany (M74)
+        { matchId: 77, teamNum: 2, accepts: ['C','D','F','G','H'], teamAbbr: null },
+        { matchId: 74, teamNum: 2, accepts: ['A','B','C','D','F'], teamAbbr: null },
+        { matchId: 79, teamNum: 2, accepts: ['C','E','F','H','I'], teamAbbr: null },
+        { matchId: 85, teamNum: 2, accepts: ['E','F','G','I','J'], teamAbbr: null },
+        { matchId: 82, teamNum: 2, accepts: ['A','E','H','I','J'], teamAbbr: null },
+        { matchId: 81, teamNum: 2, accepts: ['B','E','F','I','J'], teamAbbr: null },
+        { matchId: 80, teamNum: 2, accepts: ['E','H','I','J','K'], teamAbbr: null },
+        { matchId: 87, teamNum: 2, accepts: ['D','E','I','J','L'], teamAbbr: null }
+    ];
 
-        if (routingPlan) {
-            routingPlan.forEach(slot => {
-                const teamData = top8.find(t => t.group === slot.group);
-                injectKnockoutTeam(slot.matchId, slot.teamNum, getFullName(teamData.abbr));
+    function backtrack(index) {
+        if (index === top8.length) return true; 
+        const currentTeam = top8[index];
+        for (let i = 0; i < slots.length; i++) {
+            if (slots[i].teamAbbr === null && slots[i].accepts.includes(currentTeam.group)) {
+                slots[i].teamAbbr = currentTeam.abbr; 
+                if (backtrack(index + 1)) return true; 
+                slots[i].teamAbbr = null; 
+            }
+        }
+        return false;
+    }
+
+    if (top8.length === 8 && top8.every(t => t.p > 0)) {
+        if (backtrack(0)) {
+            slots.forEach(slot => { 
+                injectKnockoutTeam(slot.matchId, slot.teamNum, getFullName(slot.teamAbbr)); 
             });
         } else {
-            console.error("CRITICAL ERROR: Unsolvable 3rd-place combination detected:", comboKey);
+            console.error("CRITICAL ERROR: Unsolvable 3rd-place combination detected.");
         }
     }
 }
