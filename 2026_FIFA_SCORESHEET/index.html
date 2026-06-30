@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>FIFA World Cup 2026 Official Journal</title>
+    <!-- Author: Pedrus Niloy Rozario -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 1. CORE VARIABLES --- */
+        :root {
+            --bg-base: #0B0E14; --surface: #151A22; --surface-hover: #1E2532;
+            --text-main: #FFFFFF; --text-muted: #94A3B8; --fifa-gold: #CFB53B;
+            --brand-magenta: #FF0055; --brand-cyan: #00F0FF; --brand-volt: #CCFF00;
+            --brand-purple: #7000FF; --border-light: rgba(255, 255, 255, 0.15);
+            --font-headers: 'Montserrat', sans-serif; --font-data: 'Inter', sans-serif;
+            --input-bg: #FFFFFF; --input-text: #000000;
+            --grad-1: rgba(255, 0, 85, 0.15); --grad-2: rgba(0, 240, 255, 0.15);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; scrollbar-width: thin; scrollbar-color: var(--brand-cyan) var(--surface); }
+
+        body {
+            font-family: var(--font-data); background-color: var(--bg-base); color: var(--text-main);
+            background-image: radial-gradient(circle at 15% 20%, var(--grad-1), transparent 50%), radial-gradient(circle at 85% 80%, var(--grad-2), transparent 50%);
+            background-attachment: fixed; padding-bottom: 40px; overflow-x: hidden; font-size: clamp(10px, 1vw + 8px, 12px);
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        /* --- 2. COMMAND CENTER (NEW UX) --- */
+        .command-center {
+            position: sticky; top: 0; z-index: 1000;
+            background: var(--surface); border-bottom: 1px solid var(--brand-cyan);
+            padding: 15px 5%; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            flex-wrap: wrap; gap: 10px;
+        }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: var(--text-main); text-decoration: none; font-family: var(--font-headers); font-weight: 800; font-size: 1.1em; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--brand-cyan); }
+        .action-buttons { display: flex; gap: 10px; align-items: center; }
+        
+        .btn { padding: 8px 16px; border-radius: 6px; font-family: var(--font-headers); font-weight: 800; cursor: pointer; border: none; transition: transform 0.2s, box-shadow 0.2s; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-export { background: var(--fifa-gold); color: #000; box-shadow: 0 4px 10px rgba(207, 181, 59, 0.3); }
+        .btn-nuke { background: var(--brand-magenta); color: #FFF; box-shadow: 0 4px 10px rgba(255, 0, 85, 0.3); }
+        
+        .theme-switcher { background: var(--bg-base); border: 1px solid var(--border-light); color: var(--text-main); padding: 8px 12px; border-radius: 6px; font-family: var(--font-headers); font-weight: 700; cursor: pointer; outline: none; }
+        .theme-switcher:focus { border-color: var(--brand-cyan); }
+        
+        /* --- 3. DYNAMIC HIGHLIGHTING & AFFORDANCES (NEW UX) --- */
+        .match-of-the-day { background: rgba(0, 240, 255, 0.15) !important; border-left: 4px solid var(--brand-cyan); }
+        .swipe-cue { text-align: center; color: var(--brand-cyan); font-family: var(--font-headers); font-weight: 800; letter-spacing: 2px; margin-bottom: 10px; animation: pulse 2s infinite; display: none; }
+        @media (max-width: 800px) { .swipe-cue { display: block; } }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; transform: translateX(5px); } 100% { opacity: 0.5; } }
+
+        /* --- 4. PRINT MEDIA QUERY (NEW UX) --- */
+        @media print {
+            @page { size: A3 landscape; margin: 5mm; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body { overflow: visible !important; zoom: 0.55; }
+            .command-center, .theme-switcher, .btn, .swipe-cue { display: none !important; }
+            .knockout-wrapper { padding: 0 !important; overflow: visible !important; width: 100% !important; }
+            .match-box { break-inside: avoid; }
+        }
+
+        /* --- 5. LEGACY STRUCTURE --- */
+        .logo-container { text-align: center; margin-bottom: 30px; margin-top: 40px; }
+        .main-logo { height: clamp(100px, 15vw, 160px); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); transition: opacity 0.3s ease; }
+
+        h1 { font-family: var(--font-headers); font-size: clamp(2rem, 4vw, 3.5rem); text-align: center; font-weight: 900; margin-bottom: 30px; letter-spacing: 1px; color: var(--text-main); }
+        h2 { font-family: var(--font-headers); font-size: clamp(1.5rem, 3vw, 2.2rem); text-align: center; font-weight: 900; margin: 60px auto 30px; background: linear-gradient(90deg, var(--brand-cyan), var(--brand-magenta)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: block; width: max-content; border-bottom: 3px solid var(--fifa-gold); padding-bottom: 5px; }
+
+        .section-wrapper { background: var(--surface); border: 1px solid var(--border-light); border-radius: 16px; padding: clamp(15px, 2vw, 30px); box-shadow: 0 10px 40px rgba(0,0,0,0.4); margin-bottom: 50px; transition: background 0.4s ease; margin-left: 20px; margin-right: 20px; }
+
+        .groups-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; width: 100%; max-width: 1600px; margin: 0 auto; padding: 0 20px; }
+        .table-wrapper { width: 100%; overflow-x: auto; border-radius: 12px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-light); -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; min-width: 300px; }
+        th, td { border-bottom: 1px solid var(--border-light); padding: clamp(6px, 1vw, 12px) 8px; text-align: center; vertical-align: middle; }
+        th { background-color: rgba(0, 0, 0, 0.3); color: var(--text-muted); font-family: var(--font-headers); font-size: 1.1rem; font-weight: 700; }
+        .group-header { background-color: var(--text-main); color: var(--bg-base); font-size: 1.5rem; font-weight: 900; letter-spacing: 2px; border-bottom: 4px solid var(--brand-magenta); }
+        .nation-row { transition: transform 0.4s ease, background-color 0.4s ease; }
+        .nation-cell { text-align: left; font-weight: 700; font-size: 1.1em; white-space: nowrap; }
+        .flag-img { width: 24px; height: 16px; border-radius: 2px; vertical-align: middle; margin-right: 8px; border: 1px solid rgba(255,255,255,0.2); }
+        .abbr { color: var(--text-muted); font-size: 0.85em; font-weight: 600; margin-left: 4px; }
+        .vs-text { color: var(--text-muted); font-size: 0.9em; margin: 0 8px; font-weight: 700; }
+
+        @media (max-width: 1200px) { .groups-container { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 800px) { .groups-container { grid-template-columns: 1fr; } }
+
+        .match-tracker-wrapper { width: 100%; max-width: 1600px; margin: 0 auto; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; }
+        .match-tracker table { min-width: 800px; width: 100%; }
+        .match-tracker table th { color: var(--text-main); background: rgba(0,0,0,0.5); border-bottom: 2px solid var(--border-light); }
+        .match-tracker tr:hover { background-color: var(--surface-hover); }
+        .group-badge { background: var(--bg-base); color: var(--text-main); padding: 4px 10px; border-radius: 4px; font-family: var(--font-headers); font-weight: 800; border: 1px solid var(--border-light); display: inline-block; }
+        .knockout-badge { background: var(--fifa-gold); color: #000; border: none; }
+        
+
+        
+        
+        
+        .score-container { display: flex; justify-content: center; gap: 6px; }
+        .score-box { width: clamp(28px, 3vw, 32px); height: clamp(28px, 3vw, 32px); background: var(--input-bg); border-radius: 4px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        
+        .data-input, .score-input, .team-input, .score-input-small { width: 100%; height: 100%; background: transparent; border: none; color: var(--input-text); text-align: center; font-family: var(--font-headers); font-weight: 800; font-size: 1.4em; outline: none; }
+        input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
+        
+        .data-input { color: var(--text-main); font-family: var(--font-data); font-weight: 600; font-size: 1.1em; }
+        .team-input { width: 150px; padding: 10px; background: var(--input-bg); border: 2px solid transparent; color: var(--input-text); text-align: left; border-radius: 6px; font-size: 1.2em; transition: all 0.2s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
+        .team-input::placeholder { color: #A0AEC0; font-weight: 600; font-family: var(--font-data); font-size: 0.85em; }
+        .score-input-small { width: 40px; height: 42px; background: var(--surface); border: 2px solid var(--border-light); color: var(--brand-cyan); border-radius: 6px; font-size: 1.4em; text-align: center; }
+        .data-input:focus { background: rgba(255,255,255,0.1); }
+        .score-input:focus, .team-input:focus, .score-input-small:focus { border-color: var(--brand-cyan); box-shadow: 0 0 0 3px rgba(0,240,255,0.3); }
+
+        .knockout-wrapper { width: 100%; overflow-x: auto; overflow-y: hidden; padding: 50px 0; position: relative; -webkit-overflow-scrolling: touch; cursor: grab; }
+        .knockout-wrapper:active { cursor: grabbing; }
+        .knockout-bracket { display: flex; flex-direction: row; justify-content: space-between; align-items: stretch; min-width: max-content; padding: 40px; gap: 60px; }
+        .round { display: flex; flex-direction: column; justify-content: space-around; min-height: 1800px; width: 260px; gap: 30px; }
+        .center-column { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 100px; width: 280px; }
+        .match-box { background: var(--surface); border: 1px solid var(--border-light); border-top: 6px solid var(--brand-magenta); padding: 16px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.4); width: 100%; transition: transform 0.2s; }
+        .final-box, .third-place-box { width: 260px; } 
+        .match-box:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,240,255,0.2); }
+        .round-16 .match-box { border-top-color: var(--brand-cyan); }
+        .quarter-finals .match-box { border-top-color: var(--brand-volt); }
+        .semi-finals .match-box { border-top-color: var(--brand-purple); }
+        .match-meta { font-size: 0.9em; color: var(--text-muted); margin-bottom: 15px; font-weight: 700; text-transform: uppercase; text-align: center; }
+        
+        .knockout-wrapper .team-input-container { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+        .knockout-wrapper .input-row { background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px; border: 1px solid var(--border-light); width: 100%; }
+        .knockout-wrapper .input-row-inner { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 8px; }
+        .knockout-wrapper .team-input { flex-grow: 1; width: 100%; padding: 8px; }
+        .knockout-wrapper .score-input-small { width: 45px; flex-shrink: 0; height: 38px; }
+
+        .champion-box { border: 2px solid var(--fifa-gold); background: rgba(207, 181, 59, 0.1); box-shadow: 0 0 40px rgba(207, 181, 59, 0.2); padding: 30px; width: 100%; }
+        .champion-box .match-meta { color: var(--fifa-gold); font-size: 1.6rem; font-weight: 900; margin-bottom: 15px; text-shadow: 0 0 15px rgba(207,181,59,0.5); }
+        .champion-input { height: 50px; width: 100%; font-size: 1.8rem; color: #000; background: linear-gradient(135deg, var(--fifa-gold), #FFF8DC); border: none; text-align: center; font-weight: 900; border-radius: 8px; box-shadow: inset 0 3px 6px rgba(0,0,0,0.4); box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+    <!-- COMMAND CENTER NAVIGATION -->
+    <nav class="command-center" id="topNav">
+        <div class="nav-links">
+            <a href="#groupsSection">GROUPS</a>
+            <a href="#trackerSection">MATCHES</a>
+            <a href="#wallChartSection">WALL CHART</a>
+        </div>
+        <div class="action-buttons">
+            <!-- Theme Select will auto-inject here via JS -->
+            <button class="btn btn-export" onclick="window.print()">Save Bracket</button>
+            <button class="btn btn-nuke" onclick="if(confirm('Are you sure? This will wipe all scores and reset the tournament.')) { localStorage.removeItem('fifa_journal_offline_state'); location.reload(); }">Nuke Reset</button>
+        </div>
+    </nav>
+
+    <div class="logo-container">
+        <img id="mainLogo" src="Light_Logo.png" alt="World Cup 2026" class="main-logo">
+    </div>
+
+    <h1>OFFICIAL 2026 JOURNAL</h1>
+    <h2 id="groupsSection">GROUP STAGE STANDINGS</h2>
+
+    <div class="groups-container">
+
+        <div class="table-wrapper"><table><thead><tr><th colspan="9" class="group-header">GROUP A</th></tr><tr><th>NATION</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead><tbody><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/mx.png" class="flag-img"> Mexico <span class="abbr">(MEX)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/za.png" class="flag-img"> South Africa <span class="abbr">(RSA)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/kr.png" class="flag-img"> South Korea <span class="abbr">(KOR)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/cz.png" class="flag-img"> Czechia <span class="abbr">(CZE)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+        <div class="table-wrapper"><table><thead><tr><th colspan="9" class="group-header">GROUP B</th></tr><tr><th>NATION</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead><tbody><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/ca.png" class="flag-img"> Canada <span class="abbr">(CAN)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/ba.png" class="flag-img"> Bosnia and Herzegovina <span class="abbr">(BIH)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/qa.png" class="flag-img"> Qatar <span class="abbr">(QAT)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/ch.png" class="flag-img"> Switzerland <span class="abbr">(SUI)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+        <div class="table-wrapper"><table><thead><tr><th colspan="9" class="group-header">GROUP C</th></tr><tr><th>NATION</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead><tbody><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/br.png" class="flag-img"> Brazil <span class="abbr">(BRA)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/ma.png" class="flag-img"> Morocco <span class="abbr">(MAR)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/ht.png" class="flag-img"> Haiti <span class="abbr">(HAI)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/gb-sct.png" class="flag-img"> Scotland <span class="abbr">(SCO)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+        <div class="table-wrapper"><table><thead><tr><th colspan="9" class="group-header">GROUP D</th></tr><tr><th>NATION</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead><tbody><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/us.png" class="flag-img"> USA <span class="abbr">(USA)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/py.png" class="flag-img"> Paraguay <span class="abbr">(PAR)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/au.png" class="flag-img"> Australia <span class="abbr">(AUS)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/tr.png" class="flag-img"> Turkey <span class="abbr">(TUR)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+        <div class="table-wrapper"><table><thead><tr><th colspan="9" class="group-header">GROUP E</th></tr><tr><th>NATION</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead><tbody><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/de.png" class="flag-img"> Germany <span class="abbr">(GER)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/cw.png" class="flag-img"> Curacao <span class="abbr">(CUW)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/ci.png" class="flag-img"> Ivory Coast <span class="abbr">(CIV)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/ec.png" class="flag-img"> Ecuador <span class="abbr">(ECU)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+        <div class="table-wrapper"><table><thead><tr><th colspan="9" class="group-header">GROUP F</th></tr><tr><th>NATION</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead><tbody><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/nl.png" class="flag-img"> Netherlands <span class="abbr">(NED)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/jp.png" class="flag-img"> Japan <span class="abbr">(JPN)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/se.png" class="flag-img"> Sweden <span class="abbr">(SWE)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/tn.png" class="flag-img"> Tunisia <span class="abbr">(TUN)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+        <div class="table-wrapper"><table><thead><tr><th colspan="9" class="group-header">GROUP G</th></tr><tr><th>NATION</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead><tbody><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/be.png" class="flag-img"> Belgium <span class="abbr">(BEL)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/eg.png" class="flag-img"> Egypt <span class="abbr">(EGY)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/ir.png" class="flag-img"> Iran <span class="abbr">(IRN)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/nz.png" class="flag-img"> New Zealand <span class="abbr">(NZL)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+        <div class="table-wrapper"><table><thead><tr><th colspan="9" class="group-header">GROUP H</th></tr><tr><th>NATION</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead><tbody><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/es.png" class="flag-img"> Spain <span class="abbr">(ESP)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/cv.png" class="flag-img"> Cape Verde <span class="abbr">(CPV)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/sa.png" class="flag-img"> Saudi Arabia <span class="abbr">(KSA)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/uy.png" class="flag-img"> Uruguay <span class="abbr">(URU)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+        <div class="table-wrapper"><table><thead><tr><th colspan="9" class="group-header">GROUP I</th></tr><tr><th>NATION</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead><tbody><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/fr.png" class="flag-img"> France <span class="abbr">(FRA)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/sn.png" class="flag-img"> Senegal <span class="abbr">(SEN)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/iq.png" class="flag-img"> Iraq <span class="abbr">(IRQ)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/no.png" class="flag-img"> Norway <span class="abbr">(NOR)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+        <div class="table-wrapper"><table><thead><tr><th colspan="9" class="group-header">GROUP J</th></tr><tr><th>NATION</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead><tbody><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/ar.png" class="flag-img"> Argentina <span class="abbr">(ARG)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/dz.png" class="flag-img"> Algeria <span class="abbr">(ALG)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/at.png" class="flag-img"> Austria <span class="abbr">(AUT)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/jo.png" class="flag-img"> Jordan <span class="abbr">(JOR)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+        <div class="table-wrapper"><table><thead><tr><th colspan="9" class="group-header">GROUP K</th></tr><tr><th>NATION</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead><tbody><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/pt.png" class="flag-img"> Portugal <span class="abbr">(POR)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/cd.png" class="flag-img"> DR Congo <span class="abbr">(COD)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/uz.png" class="flag-img"> Uzbekistan <span class="abbr">(UZB)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/co.png" class="flag-img"> Colombia <span class="abbr">(COL)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+        <div class="table-wrapper"><table><thead><tr><th colspan="9" class="group-header">GROUP L</th></tr><tr><th>NATION</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>PTS</th></tr></thead><tbody><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/gb-eng.png" class="flag-img"> England <span class="abbr">(ENG)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/hr.png" class="flag-img"> Croatia <span class="abbr">(CRO)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/gh.png" class="flag-img"> Ghana <span class="abbr">(GHA)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="nation-row"><td class="nation-cell"><img src="https://flagcdn.com/w20/pa.png" class="flag-img"> Panama <span class="abbr">(PAN)</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+    
+    </div>
+
+    <h2 id="trackerSection">MASTER MATCH TRACKER</h2>
+
+    <div class="section-wrapper match-tracker-wrapper">
+
+        <div class="match-tracker">
+
+            <table>
+
+                <thead><tr><th>M#</th><th>DATE</th><th>STAGE</th><th>FIXTURE</th><th>VENUE</th><th>TIME</th><th>SCORE</th></tr></thead>
+
+                <tbody>
+
+                    <tr data-time="2026-06-11T19:00:00Z"><td>1</td><td class="local-date">11 Jun</td><td><span class="group-badge">GRP A</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/mx.png" class="flag-img"> Mexico <span class="abbr">(MEX)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/za.png" class="flag-img"> South Africa <span class="abbr">(RSA)</span></td><td>📍 Mexico City</td><td class="local-time">20:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-12T02:00:00Z"><td>2</td><td class="local-date">12 Jun</td><td><span class="group-badge">GRP A</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/kr.png" class="flag-img"> South Korea <span class="abbr">(KOR)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/cz.png" class="flag-img"> Czechia <span class="abbr">(CZE)</span></td><td>📍 Guadalajara</td><td class="local-time">03:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-12T19:00:00Z"><td>3</td><td class="local-date">12 Jun</td><td><span class="group-badge">GRP B</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/ca.png" class="flag-img"> Canada <span class="abbr">(CAN)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/ba.png" class="flag-img"> Bosnia and Herzegovina <span class="abbr">(BIH)</span></td><td>📍 Toronto</td><td class="local-time">20:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-13T01:00:00Z"><td>4</td><td class="local-date">13 Jun</td><td><span class="group-badge">GRP D</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/us.png" class="flag-img"> USA <span class="abbr">(USA)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/py.png" class="flag-img"> Paraguay <span class="abbr">(PAR)</span></td><td>📍 Los Angeles</td><td class="local-time">02:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-13T19:00:00Z"><td>5</td><td class="local-date">13 Jun</td><td><span class="group-badge">GRP B</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/qa.png" class="flag-img"> Qatar <span class="abbr">(QAT)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/ch.png" class="flag-img"> Switzerland <span class="abbr">(SUI)</span></td><td>📍 San Francisco</td><td class="local-time">20:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-13T22:00:00Z"><td>6</td><td class="local-date">13 Jun</td><td><span class="group-badge">GRP C</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/br.png" class="flag-img"> Brazil <span class="abbr">(BRA)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/ma.png" class="flag-img"> Morocco <span class="abbr">(MAR)</span></td><td>📍 NY-NJ</td><td class="local-time">23:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-14T01:00:00Z"><td>7</td><td class="local-date">14 Jun</td><td><span class="group-badge">GRP C</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/ht.png" class="flag-img"> Haiti <span class="abbr">(HAI)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/gb-sct.png" class="flag-img"> Scotland <span class="abbr">(SCO)</span></td><td>📍 Boston</td><td class="local-time">02:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-14T04:00:00Z"><td>8</td><td class="local-date">14 Jun</td><td><span class="group-badge">GRP D</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/au.png" class="flag-img"> Australia <span class="abbr">(AUS)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/tr.png" class="flag-img"> Turkey <span class="abbr">(TUR)</span></td><td>📍 Vancouver</td><td class="local-time">05:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-14T17:00:00Z"><td>9</td><td class="local-date">14 Jun</td><td><span class="group-badge">GRP E</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/de.png" class="flag-img"> Germany <span class="abbr">(GER)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/cw.png" class="flag-img"> Curacao <span class="abbr">(CUW)</span></td><td>📍 Houston</td><td class="local-time">18:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-14T20:00:00Z"><td>10</td><td class="local-date">14 Jun</td><td><span class="group-badge">GRP F</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/nl.png" class="flag-img"> Netherlands <span class="abbr">(NED)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/jp.png" class="flag-img"> Japan <span class="abbr">(JPN)</span></td><td>📍 Dallas</td><td class="local-time">21:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-14T23:00:00Z"><td>11</td><td class="local-date">15 Jun</td><td><span class="group-badge">GRP E</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/ci.png" class="flag-img"> Ivory Coast <span class="abbr">(CIV)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/ec.png" class="flag-img"> Ecuador <span class="abbr">(ECU)</span></td><td>📍 Philadelphia</td><td class="local-time">00:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-15T02:00:00Z"><td>12</td><td class="local-date">15 Jun</td><td><span class="group-badge">GRP F</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/se.png" class="flag-img"> Sweden <span class="abbr">(SWE)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/tn.png" class="flag-img"> Tunisia <span class="abbr">(TUN)</span></td><td>📍 Monterrey</td><td class="local-time">03:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-15T16:00:00Z"><td>13</td><td class="local-date">15 Jun</td><td><span class="group-badge">GRP H</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/es.png" class="flag-img"> Spain <span class="abbr">(ESP)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/cv.png" class="flag-img"> Cape Verde <span class="abbr">(CPV)</span></td><td>📍 Atlanta</td><td class="local-time">17:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-15T19:00:00Z"><td>14</td><td class="local-date">15 Jun</td><td><span class="group-badge">GRP G</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/be.png" class="flag-img"> Belgium <span class="abbr">(BEL)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/eg.png" class="flag-img"> Egypt <span class="abbr">(EGY)</span></td><td>📍 Seattle</td><td class="local-time">20:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-15T22:00:00Z"><td>15</td><td class="local-date">15 Jun</td><td><span class="group-badge">GRP H</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/sa.png" class="flag-img"> Saudi Arabia <span class="abbr">(KSA)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/uy.png" class="flag-img"> Uruguay <span class="abbr">(URU)</span></td><td>📍 Miami</td><td class="local-time">23:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-16T01:00:00Z"><td>16</td><td class="local-date">16 Jun</td><td><span class="group-badge">GRP G</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/ir.png" class="flag-img"> Iran <span class="abbr">(IRN)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/nz.png" class="flag-img"> New Zealand <span class="abbr">(NZL)</span></td><td>📍 Los Angeles</td><td class="local-time">02:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-16T19:00:00Z"><td>17</td><td class="local-date">16 Jun</td><td><span class="group-badge">GRP I</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/fr.png" class="flag-img"> France <span class="abbr">(FRA)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/sn.png" class="flag-img"> Senegal <span class="abbr">(SEN)</span></td><td>📍 NY-NJ</td><td class="local-time">20:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-16T22:00:00Z"><td>18</td><td class="local-date">16 Jun</td><td><span class="group-badge">GRP I</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/iq.png" class="flag-img"> Iraq <span class="abbr">(IRQ)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/no.png" class="flag-img"> Norway <span class="abbr">(NOR)</span></td><td>📍 Boston</td><td class="local-time">23:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-17T01:00:00Z"><td>19</td><td class="local-date">17 Jun</td><td><span class="group-badge">GRP J</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/ar.png" class="flag-img"> Argentina <span class="abbr">(ARG)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/dz.png" class="flag-img"> Algeria <span class="abbr">(ALG)</span></td><td>📍 Kansas City</td><td class="local-time">02:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-17T04:00:00Z"><td>20</td><td class="local-date">17 Jun</td><td><span class="group-badge">GRP J</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/at.png" class="flag-img"> Austria <span class="abbr">(AUT)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/jo.png" class="flag-img"> Jordan <span class="abbr">(JOR)</span></td><td>📍 San Francisco</td><td class="local-time">05:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-17T17:00:00Z"><td>21</td><td class="local-date">17 Jun</td><td><span class="group-badge">GRP K</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/pt.png" class="flag-img"> Portugal <span class="abbr">(POR)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/cd.png" class="flag-img"> DR Congo <span class="abbr">(COD)</span></td><td>📍 Houston</td><td class="local-time">18:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-17T20:00:00Z"><td>22</td><td class="local-date">17 Jun</td><td><span class="group-badge">GRP L</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/gb-eng.png" class="flag-img"> England <span class="abbr">(ENG)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/hr.png" class="flag-img"> Croatia <span class="abbr">(CRO)</span></td><td>📍 Dallas</td><td class="local-time">21:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-17T23:00:00Z"><td>23</td><td class="local-date">18 Jun</td><td><span class="group-badge">GRP L</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/gh.png" class="flag-img"> Ghana <span class="abbr">(GHA)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/pa.png" class="flag-img"> Panama <span class="abbr">(PAN)</span></td><td>📍 Toronto</td><td class="local-time">00:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-18T02:00:00Z"><td>24</td><td class="local-date">18 Jun</td><td><span class="group-badge">GRP K</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/uz.png" class="flag-img"> Uzbekistan <span class="abbr">(UZB)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/co.png" class="flag-img"> Colombia <span class="abbr">(COL)</span></td><td>📍 Mexico City</td><td class="local-time">03:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-18T16:00:00Z"><td>25</td><td class="local-date">18 Jun</td><td><span class="group-badge">GRP A</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/cz.png" class="flag-img"> Czechia <span class="abbr">(CZE)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/za.png" class="flag-img"> South Africa <span class="abbr">(RSA)</span></td><td>📍 Atlanta</td><td class="local-time">17:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-18T19:00:00Z"><td>26</td><td class="local-date">18 Jun</td><td><span class="group-badge">GRP B</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/ch.png" class="flag-img"> Switzerland <span class="abbr">(SUI)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/ba.png" class="flag-img"> Bosnia and Herzegovina <span class="abbr">(BIH)</span></td><td>📍 Los Angeles</td><td class="local-time">20:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-18T22:00:00Z"><td>27</td><td class="local-date">18 Jun</td><td><span class="group-badge">GRP B</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/ca.png" class="flag-img"> Canada <span class="abbr">(CAN)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/qa.png" class="flag-img"> Qatar <span class="abbr">(QAT)</span></td><td>📍 Vancouver</td><td class="local-time">23:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-19T01:00:00Z"><td>28</td><td class="local-date">19 Jun</td><td><span class="group-badge">GRP A</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/mx.png" class="flag-img"> Mexico <span class="abbr">(MEX)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/kr.png" class="flag-img"> South Korea <span class="abbr">(KOR)</span></td><td>📍 Guadalajara</td><td class="local-time">02:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-19T19:00:00Z"><td>29</td><td class="local-date">19 Jun</td><td><span class="group-badge">GRP D</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/us.png" class="flag-img"> USA <span class="abbr">(USA)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/au.png" class="flag-img"> Australia <span class="abbr">(AUS)</span></td><td>📍 Seattle</td><td class="local-time">20:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-19T22:00:00Z"><td>30</td><td class="local-date">19 Jun</td><td><span class="group-badge">GRP C</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/gb-sct.png" class="flag-img"> Scotland <span class="abbr">(SCO)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/ma.png" class="flag-img"> Morocco <span class="abbr">(MAR)</span></td><td>📍 Boston</td><td class="local-time">23:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-20T01:00:00Z"><td>31</td><td class="local-date">20 Jun</td><td><span class="group-badge">GRP C</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/br.png" class="flag-img"> Brazil <span class="abbr">(BRA)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/ht.png" class="flag-img"> Haiti <span class="abbr">(HAI)</span></td><td>📍 Philadelphia</td><td class="local-time">02:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-20T04:00:00Z"><td>32</td><td class="local-date">20 Jun</td><td><span class="group-badge">GRP D</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/tr.png" class="flag-img"> Turkey <span class="abbr">(TUR)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/py.png" class="flag-img"> Paraguay <span class="abbr">(PAR)</span></td><td>📍 San Francisco</td><td class="local-time">05:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-20T17:00:00Z"><td>33</td><td class="local-date">20 Jun</td><td><span class="group-badge">GRP F</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/nl.png" class="flag-img"> Netherlands <span class="abbr">(NED)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/se.png" class="flag-img"> Sweden <span class="abbr">(SWE)</span></td><td>📍 Houston</td><td class="local-time">18:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-20T20:00:00Z"><td>34</td><td class="local-date">20 Jun</td><td><span class="group-badge">GRP E</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/de.png" class="flag-img"> Germany <span class="abbr">(GER)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/ci.png" class="flag-img"> Ivory Coast <span class="abbr">(CIV)</span></td><td>📍 Toronto</td><td class="local-time">21:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-21T00:00:00Z"><td>35</td><td class="local-date">21 Jun</td><td><span class="group-badge">GRP E</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/ec.png" class="flag-img"> Ecuador <span class="abbr">(ECU)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/cw.png" class="flag-img"> Curacao <span class="abbr">(CUW)</span></td><td>📍 Kansas City</td><td class="local-time">01:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-21T04:00:00Z"><td>36</td><td class="local-date">21 Jun</td><td><span class="group-badge">GRP F</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/tn.png" class="flag-img"> Tunisia <span class="abbr">(TUN)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/jp.png" class="flag-img"> Japan <span class="abbr">(JPN)</span></td><td>📍 Monterrey</td><td class="local-time">05:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-21T16:00:00Z"><td>37</td><td class="local-date">21 Jun</td><td><span class="group-badge">GRP H</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/es.png" class="flag-img"> Spain <span class="abbr">(ESP)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/sa.png" class="flag-img"> Saudi Arabia <span class="abbr">(KSA)</span></td><td>📍 Atlanta</td><td class="local-time">17:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-21T19:00:00Z"><td>38</td><td class="local-date">21 Jun</td><td><span class="group-badge">GRP G</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/be.png" class="flag-img"> Belgium <span class="abbr">(BEL)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/ir.png" class="flag-img"> Iran <span class="abbr">(IRN)</span></td><td>📍 Los Angeles</td><td class="local-time">20:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-21T22:00:00Z"><td>39</td><td class="local-date">21 Jun</td><td><span class="group-badge">GRP H</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/uy.png" class="flag-img"> Uruguay <span class="abbr">(URU)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/cv.png" class="flag-img"> Cape Verde <span class="abbr">(CPV)</span></td><td>📍 Miami</td><td class="local-time">23:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-22T01:00:00Z"><td>40</td><td class="local-date">22 Jun</td><td><span class="group-badge">GRP G</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/nz.png" class="flag-img"> New Zealand <span class="abbr">(NZL)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/eg.png" class="flag-img"> Egypt <span class="abbr">(EGY)</span></td><td>📍 Vancouver</td><td class="local-time">02:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-22T17:00:00Z"><td>41</td><td class="local-date">22 Jun</td><td><span class="group-badge">GRP J</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/ar.png" class="flag-img"> Argentina <span class="abbr">(ARG)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/at.png" class="flag-img"> Austria <span class="abbr">(AUT)</span></td><td>📍 Dallas</td><td class="local-time">18:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-22T21:00:00Z"><td>42</td><td class="local-date">22 Jun</td><td><span class="group-badge">GRP I</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/fr.png" class="flag-img"> France <span class="abbr">(FRA)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/iq.png" class="flag-img"> Iraq <span class="abbr">(IRQ)</span></td><td>📍 Philadelphia</td><td class="local-time">22:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-23T00:00:00Z"><td>43</td><td class="local-date">23 Jun</td><td><span class="group-badge">GRP I</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/no.png" class="flag-img"> Norway <span class="abbr">(NOR)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/sn.png" class="flag-img"> Senegal <span class="abbr">(SEN)</span></td><td>📍 NY-NJ</td><td class="local-time">01:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-23T03:00:00Z"><td>44</td><td class="local-date">23 Jun</td><td><span class="group-badge">GRP J</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/jo.png" class="flag-img"> Jordan <span class="abbr">(JOR)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/dz.png" class="flag-img"> Algeria <span class="abbr">(ALG)</span></td><td>📍 San Francisco</td><td class="local-time">04:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-23T17:00:00Z"><td>45</td><td class="local-date">23 Jun</td><td><span class="group-badge">GRP K</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/pt.png" class="flag-img"> Portugal <span class="abbr">(POR)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/uz.png" class="flag-img"> Uzbekistan <span class="abbr">(UZB)</span></td><td>📍 Houston</td><td class="local-time">18:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-23T20:00:00Z"><td>46</td><td class="local-date">23 Jun</td><td><span class="group-badge">GRP L</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/gb-eng.png" class="flag-img"> England <span class="abbr">(ENG)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/gh.png" class="flag-img"> Ghana <span class="abbr">(GHA)</span></td><td>📍 Boston</td><td class="local-time">21:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-23T23:00:00Z"><td>47</td><td class="local-date">24 Jun</td><td><span class="group-badge">GRP L</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/pa.png" class="flag-img"> Panama <span class="abbr">(PAN)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/hr.png" class="flag-img"> Croatia <span class="abbr">(CRO)</span></td><td>📍 Toronto</td><td class="local-time">00:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-24T02:00:00Z"><td>48</td><td class="local-date">24 Jun</td><td><span class="group-badge">GRP K</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/co.png" class="flag-img"> Colombia <span class="abbr">(COL)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/cd.png" class="flag-img"> DR Congo <span class="abbr">(COD)</span></td><td>📍 Guadalajara</td><td class="local-time">03:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-24T19:00:00Z"><td>49</td><td class="local-date">24 Jun</td><td><span class="group-badge">GRP B</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/ch.png" class="flag-img"> Switzerland <span class="abbr">(SUI)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/ca.png" class="flag-img"> Canada <span class="abbr">(CAN)</span></td><td>📍 Vancouver</td><td class="local-time">20:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-24T19:00:00Z"><td>50</td><td class="local-date">24 Jun</td><td><span class="group-badge">GRP B</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/ba.png" class="flag-img"> Bosnia and Herzegovina <span class="abbr">(BIH)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/qa.png" class="flag-img"> Qatar <span class="abbr">(QAT)</span></td><td>📍 Seattle</td><td class="local-time">20:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-24T22:00:00Z"><td>51</td><td class="local-date">24 Jun</td><td><span class="group-badge">GRP C</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/ma.png" class="flag-img"> Morocco <span class="abbr">(MAR)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/ht.png" class="flag-img"> Haiti <span class="abbr">(HAI)</span></td><td>📍 Atlanta</td><td class="local-time">23:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-24T22:00:00Z"><td>52</td><td class="local-date">24 Jun</td><td><span class="group-badge">GRP C</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/gb-sct.png" class="flag-img"> Scotland <span class="abbr">(SCO)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/br.png" class="flag-img"> Brazil <span class="abbr">(BRA)</span></td><td>📍 Miami</td><td class="local-time">23:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-25T01:00:00Z"><td>53</td><td class="local-date">25 Jun</td><td><span class="group-badge">GRP A</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/za.png" class="flag-img"> South Africa <span class="abbr">(RSA)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/kr.png" class="flag-img"> South Korea <span class="abbr">(KOR)</span></td><td>📍 Monterrey</td><td class="local-time">02:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-25T01:00:00Z"><td>54</td><td class="local-date">25 Jun</td><td><span class="group-badge">GRP A</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/cz.png" class="flag-img"> Czechia <span class="abbr">(CZE)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/mx.png" class="flag-img"> Mexico <span class="abbr">(MEX)</span></td><td>📍 Mexico City</td><td class="local-time">02:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-25T20:00:00Z"><td>55</td><td class="local-date">25 Jun</td><td><span class="group-badge">GRP E</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/cw.png" class="flag-img"> Curacao <span class="abbr">(CUW)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/ci.png" class="flag-img"> Ivory Coast <span class="abbr">(CIV)</span></td><td>📍 Philadelphia</td><td class="local-time">21:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-25T20:00:00Z"><td>56</td><td class="local-date">25 Jun</td><td><span class="group-badge">GRP E</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/ec.png" class="flag-img"> Ecuador <span class="abbr">(ECU)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/de.png" class="flag-img"> Germany <span class="abbr">(GER)</span></td><td>📍 NY-NJ</td><td class="local-time">21:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-25T23:00:00Z"><td>57</td><td class="local-date">26 Jun</td><td><span class="group-badge">GRP F</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/tn.png" class="flag-img"> Tunisia <span class="abbr">(TUN)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/nl.png" class="flag-img"> Netherlands <span class="abbr">(NED)</span></td><td>📍 Kansas City</td><td class="local-time">00:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-25T23:00:00Z"><td>58</td><td class="local-date">26 Jun</td><td><span class="group-badge">GRP F</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/jp.png" class="flag-img"> Japan <span class="abbr">(JPN)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/se.png" class="flag-img"> Sweden <span class="abbr">(SWE)</span></td><td>📍 Dallas</td><td class="local-time">00:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-26T02:00:00Z"><td>59</td><td class="local-date">26 Jun</td><td><span class="group-badge">GRP D</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/tr.png" class="flag-img"> Turkey <span class="abbr">(TUR)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/us.png" class="flag-img"> USA <span class="abbr">(USA)</span></td><td>📍 Los Angeles</td><td class="local-time">03:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-26T02:00:00Z"><td>60</td><td class="local-date">26 Jun</td><td><span class="group-badge">GRP D</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/py.png" class="flag-img"> Paraguay <span class="abbr">(PAR)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/au.png" class="flag-img"> Australia <span class="abbr">(AUS)</span></td><td>📍 San Francisco</td><td class="local-time">03:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-26T19:00:00Z"><td>61</td><td class="local-date">26 Jun</td><td><span class="group-badge">GRP I</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/no.png" class="flag-img"> Norway <span class="abbr">(NOR)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/fr.png" class="flag-img"> France <span class="abbr">(FRA)</span></td><td>📍 Boston</td><td class="local-time">20:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-26T19:00:00Z"><td>62</td><td class="local-date">26 Jun</td><td><span class="group-badge">GRP I</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/sn.png" class="flag-img"> Senegal <span class="abbr">(SEN)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/iq.png" class="flag-img"> Iraq <span class="abbr">(IRQ)</span></td><td>📍 Toronto</td><td class="local-time">20:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-27T00:00:00Z"><td>63</td><td class="local-date">27 Jun</td><td><span class="group-badge">GRP H</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/cv.png" class="flag-img"> Cape Verde <span class="abbr">(CPV)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/sa.png" class="flag-img"> Saudi Arabia <span class="abbr">(KSA)</span></td><td>📍 Houston</td><td class="local-time">01:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-27T00:00:00Z"><td>64</td><td class="local-date">27 Jun</td><td><span class="group-badge">GRP H</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/uy.png" class="flag-img"> Uruguay <span class="abbr">(URU)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/es.png" class="flag-img"> Spain <span class="abbr">(ESP)</span></td><td>📍 Guadalajara</td><td class="local-time">01:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-27T03:00:00Z"><td>65</td><td class="local-date">27 Jun</td><td><span class="group-badge">GRP G</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/nz.png" class="flag-img"> New Zealand <span class="abbr">(NZL)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/be.png" class="flag-img"> Belgium <span class="abbr">(BEL)</span></td><td>📍 Vancouver</td><td class="local-time">04:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-27T03:00:00Z"><td>66</td><td class="local-date">27 Jun</td><td><span class="group-badge">GRP G</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/eg.png" class="flag-img"> Egypt <span class="abbr">(EGY)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/ir.png" class="flag-img"> Iran <span class="abbr">(IRN)</span></td><td>📍 Seattle</td><td class="local-time">04:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-27T21:00:00Z"><td>67</td><td class="local-date">27 Jun</td><td><span class="group-badge">GRP L</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/pa.png" class="flag-img"> Panama <span class="abbr">(PAN)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/gb-eng.png" class="flag-img"> England <span class="abbr">(ENG)</span></td><td>📍 NY-NJ</td><td class="local-time">22:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-27T21:00:00Z"><td>68</td><td class="local-date">27 Jun</td><td><span class="group-badge">GRP L</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/hr.png" class="flag-img"> Croatia <span class="abbr">(CRO)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/gh.png" class="flag-img"> Ghana <span class="abbr">(GHA)</span></td><td>📍 Philadelphia</td><td class="local-time">22:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-27T23:30:00Z"><td>69</td><td class="local-date">28 Jun</td><td><span class="group-badge">GRP K</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/co.png" class="flag-img"> Colombia <span class="abbr">(COL)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/pt.png" class="flag-img"> Portugal <span class="abbr">(POR)</span></td><td>📍 Miami</td><td class="local-time">00:30</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-27T23:30:00Z"><td>70</td><td class="local-date">28 Jun</td><td><span class="group-badge">GRP K</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/cd.png" class="flag-img"> DR Congo <span class="abbr">(COD)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/uz.png" class="flag-img"> Uzbekistan <span class="abbr">(UZB)</span></td><td>📍 Atlanta</td><td class="local-time">00:30</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-28T02:00:00Z"><td>71</td><td class="local-date">28 Jun</td><td><span class="group-badge">GRP J</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/dz.png" class="flag-img"> Algeria <span class="abbr">(ALG)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/at.png" class="flag-img"> Austria <span class="abbr">(AUT)</span></td><td>📍 Kansas City</td><td class="local-time">03:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                    <tr data-time="2026-06-28T02:00:00Z"><td>72</td><td class="local-date">28 Jun</td><td><span class="group-badge">GRP J</span></td><td class="nation-cell"><img src="https://flagcdn.com/w20/jo.png" class="flag-img"> Jordan <span class="abbr">(JOR)</span> <span class="vs-text">VS</span> <img src="https://flagcdn.com/w20/ar.png" class="flag-img"> Argentina <span class="abbr">(ARG)</span></td><td>📍 Dallas</td><td class="local-time">03:00</td><td><div class="score-container"><div class="score-box"></div><div class="score-box"></div></div></td></tr>
+                
+                <tr data-time="2026-06-28T19:00:00Z">
+    <td>73</td><td class="local-date">28 Jun</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="2nd Group A"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="2nd Group B"></div></td>
+    <td>📍 Los Angeles</td><td class="local-time">20:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-06-29T17:00:00Z">
+    <td>76</td><td class="local-date">29 Jun</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="1st Group C"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="2nd Group F"></div></td>
+    <td>📍 Houston</td><td class="local-time">18:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-06-29T20:30:00Z">
+    <td>74</td><td class="local-date">29 Jun</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="1st Group E"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="3rd A/B/C/D/F"></div></td>
+    <td>📍 Boston</td><td class="local-time">21:30</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-06-30T01:00:00Z">
+    <td>75</td><td class="local-date">30 Jun</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="1st Group F"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="2nd Group C"></div></td>
+    <td>📍 Monterrey</td><td class="local-time">02:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-06-30T17:00:00Z">
+    <td>78</td><td class="local-date">30 Jun</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="2nd Group E"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="2nd Group I"></div></td>
+    <td>📍 Dallas</td><td class="local-time">18:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-06-30T21:00:00Z">
+    <td>77</td><td class="local-date">30 Jun</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="1st Group I"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="3rd C/D/F/G/H"></div></td>
+    <td>📍 New York/NJ</td><td class="local-time">22:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-01T01:00:00Z">
+    <td>79</td><td class="local-date">01 Jul</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="1st Group A"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="3rd C/E/F/H/I"></div></td>
+    <td>📍 Mexico City</td><td class="local-time">02:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-01T16:00:00Z">
+    <td>80</td><td class="local-date">01 Jul</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="1st Group L"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="3rd E/H/I/J/K"></div></td>
+    <td>📍 Atlanta</td><td class="local-time">17:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-01T20:00:00Z">
+    <td>82</td><td class="local-date">01 Jul</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="1st Group G"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="3rd A/E/H/I/J"></div></td>
+    <td>📍 Seattle</td><td class="local-time">21:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-02T00:00:00Z">
+    <td>81</td><td class="local-date">02 Jul</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="1st Group D"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="3rd B/E/F/I/J"></div></td>
+    <td>📍 San Francisco</td><td class="local-time">01:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-02T19:00:00Z">
+    <td>84</td><td class="local-date">02 Jul</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="1st Group H"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="2nd Group J"></div></td>
+    <td>📍 Los Angeles</td><td class="local-time">20:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-02T23:00:00Z">
+    <td>83</td><td class="local-date">03 Jul</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="2nd Group K"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="2nd Group L"></div></td>
+    <td>📍 Toronto</td><td class="local-time">00:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-03T03:00:00Z">
+    <td>85</td><td class="local-date">03 Jul</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="1st Group B"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="3rd E/F/G/I/J"></div></td>
+    <td>📍 Vancouver</td><td class="local-time">04:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-03T18:00:00Z">
+    <td>88</td><td class="local-date">03 Jul</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="2nd Group D"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="2nd Group G"></div></td>
+    <td>📍 Dallas</td><td class="local-time">19:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-03T22:00:00Z">
+    <td>86</td><td class="local-date">03 Jul</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="1st Group J"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="2nd Group H"></div></td>
+    <td>📍 Miami</td><td class="local-time">23:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-04T01:30:00Z">
+    <td>87</td><td class="local-date">04 Jul</td><td><span class="group-badge knockout-badge">R32</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="1st Group K"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="3rd D/E/I/J/L"></div></td>
+    <td>📍 Kansas City</td><td class="local-time">02:30</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+            <tr data-time="2026-07-04T17:00:00Z">
+    <td>90</td><td class="local-date">04 Jul</td><td><span class="group-badge knockout-badge">R16</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Winner Match 73"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Winner Match 75"></div></td>
+    <td>📍 Houston</td><td class="local-time">18:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-04T21:00:00Z">
+    <td>89</td><td class="local-date">04 Jul</td><td><span class="group-badge knockout-badge">R16</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Winner Match 74"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Winner Match 77"></div></td>
+    <td>📍 Philadelphia</td><td class="local-time">22:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-05T20:00:00Z">
+    <td>91</td><td class="local-date">05 Jul</td><td><span class="group-badge knockout-badge">R16</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Winner Match 76"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Winner Match 78"></div></td>
+    <td>📍 New York/NJ</td><td class="local-time">21:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-06T00:00:00Z">
+    <td>92</td><td class="local-date">06 Jul</td><td><span class="group-badge knockout-badge">R16</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Winner Match 79"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Winner Match 80"></div></td>
+    <td>📍 Mexico City</td><td class="local-time">01:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-06T19:00:00Z">
+    <td>93</td><td class="local-date">06 Jul</td><td><span class="group-badge knockout-badge">R16</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Winner Match 83"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Winner Match 84"></div></td>
+    <td>📍 Dallas</td><td class="local-time">20:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-07T00:00:00Z">
+    <td>94</td><td class="local-date">07 Jul</td><td><span class="group-badge knockout-badge">R16</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Winner Match 81"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Winner Match 82"></div></td>
+    <td>📍 Seattle</td><td class="local-time">01:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-07T16:00:00Z">
+    <td>95</td><td class="local-date">07 Jul</td><td><span class="group-badge knockout-badge">R16</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Winner Match 86"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Winner Match 88"></div></td>
+    <td>📍 Atlanta</td><td class="local-time">17:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-07T20:00:00Z">
+    <td>96</td><td class="local-date">07 Jul</td><td><span class="group-badge knockout-badge">R16</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Winner Match 85"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Winner Match 87"></div></td>
+    <td>📍 Vancouver</td><td class="local-time">21:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-09T20:00:00Z">
+    <td>97</td><td class="local-date">09 Jul</td><td><span class="group-badge knockout-badge" style="background:var(--brand-cyan); color:#000;">QF</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Winner Match 89"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Winner Match 90"></div></td>
+    <td>📍 Boston</td><td class="local-time">21:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-10T19:00:00Z">
+    <td>98</td><td class="local-date">10 Jul</td><td><span class="group-badge knockout-badge" style="background:var(--brand-cyan); color:#000;">QF</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Winner Match 93"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Winner Match 94"></div></td>
+    <td>📍 Los Angeles</td><td class="local-time">20:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-11T21:00:00Z">
+    <td>99</td><td class="local-date">11 Jul</td><td><span class="group-badge knockout-badge" style="background:var(--brand-cyan); color:#000;">QF</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Winner Match 91"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Winner Match 92"></div></td>
+    <td>📍 Miami</td><td class="local-time">22:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-12T01:00:00Z">
+    <td>100</td><td class="local-date">12 Jul</td><td><span class="group-badge knockout-badge" style="background:var(--brand-cyan); color:#000;">QF</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Winner Match 95"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Winner Match 96"></div></td>
+    <td>📍 Kansas City</td><td class="local-time">02:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-14T19:00:00Z">
+    <td>101</td><td class="local-date">14 Jul</td><td><span class="group-badge knockout-badge" style="background:var(--brand-volt); color:#000;">SF</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Winner Match 97"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Winner Match 98"></div></td>
+    <td>📍 Dallas</td><td class="local-time">20:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-15T19:00:00Z">
+    <td>102</td><td class="local-date">15 Jul</td><td><span class="group-badge knockout-badge" style="background:var(--brand-volt); color:#000;">SF</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Winner Match 99"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Winner Match 100"></div></td>
+    <td>📍 Atlanta</td><td class="local-time">20:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-18T21:00:00Z">
+    <td>103</td><td class="local-date">18 Jul</td><td><span class="group-badge knockout-badge" style="background:var(--text-muted); color:#FFF;">3RD</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right;" placeholder="Loser Match 101"><span class="vs-text" style="align-self:center;">VS</span><input class="team-input" style="width:175px; text-align:left;" placeholder="Loser Match 102"></div></td>
+    <td>📍 Miami</td><td class="local-time">22:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+<tr data-time="2026-07-19T19:00:00Z" style="background: rgba(207, 181, 59, 0.1); box-shadow: inset 0 0 20px rgba(207, 181, 59, 0.2);">
+    <td style="color:var(--fifa-gold); font-weight:900;">104</td><td class="local-date" style="color:var(--fifa-gold);">19 Jul</td><td><span class="group-badge knockout-badge" style="background:var(--fifa-gold); color:#000;">FNL</span></td>
+    <td><div class="team-input-container" style="flex-direction:row;"><input class="team-input" style="width:175px; text-align:right; font-weight:900; color:var(--fifa-gold);" placeholder="Winner Match 101"><span class="vs-text" style="align-self:center; color:var(--fifa-gold);">VS</span><input class="team-input" style="width:175px; text-align:left; font-weight:900; color:var(--fifa-gold);" placeholder="Winner Match 102"></div></td>
+    <td style="color:var(--fifa-gold);">📍 New York/NJ</td><td class="local-time" style="color:var(--fifa-gold);">20:00</td>
+    <td><div class="score-container"><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div><div class="score-box"><input type="number" min="0" step="1" inputmode="numeric" class="score-input"></div></div></td>
+    
+</tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <h2 id="wallChartSection">LANDSCAPE WALL CHART</h2>
+
+    <div class="swipe-cue">Swipe to explore ➡️</div>
+
+    <div class="section-wrapper knockout-wrapper">
+
+        <div class="knockout-bracket">
+            
+            <div class="round round-32">
+                <div class="match-group" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="match-box" data-match-id="74"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                    <div class="match-box" data-match-id="77"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                </div>
+                
+                <div class="match-group" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="match-box" data-match-id="73"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                    <div class="match-box" data-match-id="75"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                </div>
+
+                <div class="match-group" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="match-box" data-match-id="83"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                    <div class="match-box" data-match-id="84"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                </div>
+
+                <div class="match-group" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="match-box" data-match-id="81"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                    <div class="match-box" data-match-id="82"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                </div>
+            </div>
+
+            <div class="round round-16">
+                <div class="match-box" data-match-id="89"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                <div class="match-box" data-match-id="90"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                <div class="match-box" data-match-id="93"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                <div class="match-box" data-match-id="94"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+            </div>
+
+            <div class="round quarter-finals">
+                <div class="match-box" data-match-id="97"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                <div class="match-box" data-match-id="98"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+            </div>
+
+            <div class="round semi-finals">
+                <div class="match-box" data-match-id="101"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+            </div>
+
+            <div class="center-column">
+                <div class="match-box third-place-box" data-match-id="103" style="border-top-color: #FFFFFF;">
+                    <div class="match-meta" style="color:#FFFFFF;"></div>
+                    <div class="team-input-container">
+                        <div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div>
+                        <div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div>
+                    </div>
+                </div>
+
+                <div class="match-box final-box" data-match-id="104" style="border-top-color: var(--fifa-gold);">
+                    <div class="match-meta" style="color:var(--fifa-gold);"></div>
+                    <div class="team-input-container">
+                        <div class="input-row"><div class="input-row-inner"><input class="team-input" style="color:var(--fifa-gold); font-weight:900;" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div>
+                        <div class="input-row"><div class="input-row-inner"><input class="team-input" style="color:var(--fifa-gold); font-weight:900;" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div>
+                    </div>
+                </div>
+                
+                <div class="match-box champion-box" style="padding-top: 10px;">
+                    <div class="match-meta">2026 WORLD CHAMPION</div>
+                    <input class="champion-input" id="championInput" style="text-align:center; font-family:var(--font-headers); font-weight:900;" placeholder="WINNER" aria-label="Champion">
+                </div>
+            </div>
+
+            <div class="round semi-finals">
+                <div class="match-box" data-match-id="102"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+            </div>
+
+            <div class="round quarter-finals">
+                <div class="match-box" data-match-id="99"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                <div class="match-box" data-match-id="100"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+            </div>
+
+            <div class="round round-16">
+                <div class="match-box" data-match-id="91"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                <div class="match-box" data-match-id="92"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                <div class="match-box" data-match-id="95"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                <div class="match-box" data-match-id="96"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+            </div>
+
+            <div class="round round-32">
+                <div class="match-group" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="match-box" data-match-id="76"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                    <div class="match-box" data-match-id="78"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                </div>
+
+                <div class="match-group" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="match-box" data-match-id="79"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                    <div class="match-box" data-match-id="80"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                </div>
+
+                <div class="match-group" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="match-box" data-match-id="86"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                    <div class="match-box" data-match-id="88"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                </div>
+
+                <div class="match-group" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="match-box" data-match-id="85"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                    <div class="match-box" data-match-id="87"><div class="match-meta"></div><div class="team-input-container"><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 1"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div><div class="input-row"><div class="input-row-inner"><input class="team-input" aria-label="Team 2"><input type="number" min="0" step="1" inputmode="numeric" class="score-input-small" aria-label="Score"></div></div></div></div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="tournament-engine.js"></script>
+
+</body>
+</html>
