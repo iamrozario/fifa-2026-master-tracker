@@ -76,11 +76,14 @@ document.addEventListener('DOMContentLoaded', () => {
         input.style.pointerEvents = 'none'; 
     });
 
+    loadBracketFromURL();
     loadData(); 
     evaluatePenaltyVisibility(); // CHECK FOR TIES SAVED IN MEMORY
     attachGlobalListeners();
     attachModalTriggers(); 
     setupKillSwitch(); 
+
+    initStadiumClock();
     
     if (typeof calculateGroupStages === "function") calculateGroupStages(); 
     if (typeof calculateKnockouts === "function") calculateKnockouts(); 
@@ -787,24 +790,24 @@ function calculateKnockouts() {
 
     // --- NEW: AUTOMATICALLY CROWN THE CHAMPION ---
     const finalMatch = getKnockoutMatchData(104);
-    const championInput = document.getElementById('championInput');
+    const championInput = document.getElementById("championInput");
     
     if (championInput) {
-        // Lock the UI so users cannot tamper with the final result
-        championInput.setAttribute('readonly', 'true');
-        championInput.style.pointerEvents = 'none';
+        championInput.setAttribute("readonly", "true");
+        championInput.style.pointerEvents = "none";
         
         if (finalMatch && finalMatch.winner) {
-            // If the final has a winner, inject it and save state
             if (championInput.value !== finalMatch.winner) {
                 championInput.value = finalMatch.winner;
                 saveUI();
+                triggerConfetti();
             }
         } else {
-            // If the final score is cleared, reset the champion box
-            if (championInput.value !== '') {
-                championInput.value = '';
+            if (championInput.value !== "") {
+                championInput.value = "";
                 saveUI();
+                const cvs = document.getElementById("confetti-canvas");
+                if (cvs) cvs.remove();
             }
         }
     }
@@ -866,4 +869,111 @@ function fixTrackerPlaceholders() {
         }
     });
 }
+
+
+// --- NEW FEATURES INCORPORATED --- //
+
+// 1. STADIUM CLOCK
+function initStadiumClock() {
+    const finalDate = new Date("2026-07-19T20:00:00Z").getTime();
+    const countdownEl = document.getElementById("finalCountdown");
+    const localEl = document.getElementById("localClock");
+    if (!countdownEl || !localEl) return;
+    setInterval(() => {
+        const now = new Date();
+        localEl.textContent = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0") + ":" + String(now.getSeconds()).padStart(2, "0");
+        const distance = finalDate - now.getTime();
+        if (distance < 0) { countdownEl.textContent = "00D 00H 00M 00S"; countdownEl.style.color = "#00ffcc"; return; }
+        const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((distance % (1000 * 60)) / 1000);
+        countdownEl.textContent = String(d).padStart(2, "0") + "D " + String(h).padStart(2, "0") + "H " + String(m).padStart(2, "0") + "M " + String(s).padStart(2, "0") + "S";
+    }, 1000);
+}
+
+// 2. STATELESS URL SHARING
+function shareBracket() {
+    try {
+        const stateStr = JSON.stringify(tournamentData);
+        // Base64 encode the string to put it safely in a URL
+        const encoded = btoa(unescape(encodeURIComponent(stateStr)));
+        const url = new URL(window.location.href);
+        url.searchParams.set("bracket", encoded);
+        navigator.clipboard.writeText(url.toString());
+        alert("Bracket link copied to clipboard! Share it with anyone.");
+    } catch(e) { alert("Failed to generate link."); }
+}
+function loadBracketFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const bracketData = params.get("bracket");
+    if (bracketData) {
+        try {
+            const decoded = decodeURIComponent(escape(atob(bracketData)));
+            const parsed = JSON.parse(decoded);
+            if (parsed && parsed.inputs) {
+                // Merge loaded data into local storage and reload
+                localStorage.setItem(STORAGE_KEY, decoded);
+                window.location.search = ""; // clear URL
+            }
+        } catch(e) { console.error("Invalid bracket URL"); }
+    }
+}
+
+// 3. JUMP TO LIVE MATCH
+function jumpToLiveMatch() {
+    const now = Date.now();
+    let closestRow = null;
+    let minDiff = Infinity;
+    document.querySelectorAll(".match-tracker-wrapper tbody tr").forEach(row => {
+        const timeAttr = row.getAttribute("data-time");
+        if (timeAttr) {
+            const matchTime = new Date(timeAttr).getTime();
+            const diff = Math.abs(matchTime - now);
+            if (diff < minDiff) { minDiff = diff; closestRow = row; }
+        }
+    });
+    if (closestRow) closestRow.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+// 4. MONTE CARLO SIMULATOR
+function simulateTournament() {
+    if(!confirm("This will overwrite all empty scores with random simulated scores. Proceed?")) return;
+    const scores = [0, 0, 1, 1, 1, 2, 2, 3, 4]; // Weighted distribution
+    document.querySelectorAll(".match-tracker-wrapper .score-input").forEach(input => {
+        if (!input.readOnly && input.value === "") {
+            input.value = scores[Math.floor(Math.random() * scores.length)];
+            // trigger input event to cascade logic
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+    });
+}
+
+// 5. CONFETTI ENGINE
+function triggerConfetti() {
+    if (document.getElementById("confetti-canvas")) return;
+    const canvas = document.createElement("canvas");
+    canvas.id = "confetti-canvas";
+    canvas.style.position = "fixed"; canvas.style.top = "0"; canvas.style.left = "0";
+    canvas.style.width = "100%"; canvas.style.height = "100%"; canvas.style.pointerEvents = "none"; canvas.style.zIndex = "9999";
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    const pieces = [];
+    const colors = ["#FF0055", "#00F0FF", "#CCFF00", "#CFB53B", "#FFFFFF"];
+    for (let i = 0; i < 150; i++) pieces.push({ x: canvas.width / 2, y: canvas.height / 2 + 200, vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 1) * 20 - 5, size: Math.random() * 10 + 5, color: colors[Math.floor(Math.random() * colors.length)], rot: Math.random() * 360, rotSpeed: (Math.random() - 0.5) * 10 });
+    function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = false;
+        pieces.forEach(p => {
+            p.x += p.vx; p.y += p.vy; p.vy += 0.5; p.rot += p.rotSpeed;
+            if (p.y < canvas.height) active = true;
+            ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI / 180);
+            ctx.fillStyle = p.color; ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size); ctx.restore();
+        });
+        if (active) requestAnimationFrame(render); else canvas.remove();
+    }
+    render();
+}
+
 
